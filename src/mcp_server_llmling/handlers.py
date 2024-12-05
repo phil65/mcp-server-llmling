@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from llmling.core import exceptions
-from llmling.core.log import get_logger
 import mcp
 from mcp.types import (
     INTERNAL_ERROR,
@@ -17,6 +16,7 @@ from mcp.types import (
 )
 
 from mcp_server_llmling import conversions
+from mcp_server_llmling.log import get_logger
 
 
 if TYPE_CHECKING:

@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from llmling.core.log import get_logger
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
@@ -13,7 +12,11 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 import uvicorn
 
-from mcp_server_llmling.log import configure_server_logging, run_logging_processor
+from mcp_server_llmling.log import (
+    configure_server_logging,
+    get_logger,
+    run_logging_processor,
+)
 from mcp_server_llmling.transports.base import TransportBase
 
 

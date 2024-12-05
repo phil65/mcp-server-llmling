@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import asyncio
 
-from llmling.core.log import get_logger
 from mcp.server.stdio import stdio_server
 
-from mcp_server_llmling.log import configure_server_logging, run_logging_processor
+from mcp_server_llmling.log import (
+    configure_server_logging,
+    get_logger,
+    run_logging_processor,
+)
 from mcp_server_llmling.transports.base import TransportBase
 
 

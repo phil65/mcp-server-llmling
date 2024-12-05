@@ -9,11 +9,11 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 from llmling.config.manager import ConfigManager
 from llmling.config.runtime import RuntimeConfig
-from llmling.core.log import get_logger
 from mcp.server import NotificationOptions, Server
 from pydantic import AnyUrl
 
 from mcp_server_llmling.handlers import register_handlers
+from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.observers import PromptObserver, ResourceObserver, ToolObserver
 from mcp_server_llmling.transports.sse import SSEServer
 from mcp_server_llmling.transports.stdio import StdioServer

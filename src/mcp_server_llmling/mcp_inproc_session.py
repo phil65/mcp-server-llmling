@@ -8,7 +8,7 @@ import subprocess
 import sys
 from typing import Any
 
-from llmling.core.log import get_logger
+from mcp_server_llmling.log import get_logger
 
 
 logger = get_logger(__name__)

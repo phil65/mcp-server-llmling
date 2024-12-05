@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING
 
 from llmling.config.models import Resource
 from llmling.core.events import Event, EventType, RegistryEvents
-from llmling.core.log import get_logger
 from llmling.prompts.models import BasePrompt
 from llmling.tools.base import LLMCallableTool
+
+from mcp_server_llmling.log import get_logger
 
 
 if TYPE_CHECKING:

@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING
 from llmling import config_resources
 from llmling.config.manager import ConfigManager
 from llmling.config.runtime import RuntimeConfig
-from llmling.core.log import get_logger
 import logfire
+
+from mcp_server_llmling.log import get_logger
 
 
 if TYPE_CHECKING:

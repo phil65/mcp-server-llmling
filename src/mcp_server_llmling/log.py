@@ -22,6 +22,18 @@ LEVEL_MAP: dict[int, types.LoggingLevel] = {
 }
 
 
+def get_logger(name: str) -> logging.Logger:
+    """Get a logger for the given name.
+
+    Args:
+        name: The name of the logger, will be prefixed with 'llmling.'
+
+    Returns:
+        A logger instance
+    """
+    return logging.getLogger(f"mcp_server_llmling.{name}")
+
+
 class MCPHandler(logging.Handler):
     """Handler that sends logs via MCP protocol."""
 

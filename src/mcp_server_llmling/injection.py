@@ -14,12 +14,12 @@ from llmling.config.models import (
     TextResource,
     ToolConfig,
 )
-from llmling.core.log import get_logger
 import logfire
 from py2openai import OpenAIFunctionTool  # noqa: TC002
 from pydantic import BaseModel
 from pydantic.fields import Field
 
+from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.transports.stdio import StdioServer
 
 
