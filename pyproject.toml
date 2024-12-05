@@ -34,7 +34,9 @@ keywords = []
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
 dependencies = [
-"pydantic",
+    "fastapi>=0.115.6",
+    "llmling>=0.10.1",
+    "pydantic",
     # Only add below (Copier)
 ]
 
