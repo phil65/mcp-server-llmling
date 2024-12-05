@@ -35,7 +35,7 @@ requires-python = ">=3.12"
 license = { file = "LICENSE" }
 dependencies = [
     "fastapi>=0.115.6",
-    "llmling>=0.10.1",
+    "llmling>=0.11.4",
     "mcp>=1.1.0",
     "pydantic",
     # Only add below (Copier)

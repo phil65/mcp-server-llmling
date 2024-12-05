@@ -179,9 +179,9 @@ class ConfigInjectionServer:
         async def list_components() -> dict[str, Sequence[str]]:
             """List all registered components."""
             return {
-                "resources": self.llm_server.runtime.list_resources(),
-                "tools": self.llm_server.runtime.list_tools(),
-                "prompts": self.llm_server.runtime.list_prompts(),
+                "resources": self.llm_server.runtime.list_resource_names(),
+                "tools": self.llm_server.runtime.list_tool_names(),
+                "prompts": self.llm_server.runtime.list_prompt_names(),
             }
 
         # Resource endpoints
@@ -205,7 +205,7 @@ class ConfigInjectionServer:
             """List all resources with their configuration."""
             return {
                 name: self.llm_server.runtime._resource_registry[name]
-                for name in self.llm_server.runtime.list_resources()
+                for name in self.llm_server.runtime.list_resource_names()
             }
 
         @self.app.delete("/resources/{name}", response_model=ComponentResponse)
