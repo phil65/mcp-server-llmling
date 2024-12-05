@@ -6,9 +6,10 @@ import asyncio
 import sys
 from typing import TYPE_CHECKING, Any
 
-from llmling.config.models import Config, GlobalSettings
+from llmling.config.models import Config, GlobalSettings, TextResource, ToolConfig
 from llmling.config.runtime import RuntimeConfig
 from llmling.processors.registry import ProcessorRegistry
+from llmling.prompts.models import PromptMessage, StaticPrompt
 from llmling.prompts.registry import PromptRegistry
 from llmling.resources import ResourceLoaderRegistry
 from llmling.resources.registry import ResourceRegistry
@@ -17,6 +18,7 @@ from llmling.testing.tools import analyze_ast, example_tool
 from llmling.tools.registry import ToolRegistry
 from mcp.shared.memory import create_client_server_memory_streams
 import pytest
+import yaml
 
 from mcp_server_llmling import LLMLingServer
 from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
@@ -24,6 +26,7 @@ from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
+    from pathlib import Path
 
 
 @pytest.fixture
@@ -124,3 +127,50 @@ async def running_server(
 async def client() -> MCPInProcSession:
     """Create a test client."""
     return MCPInProcSession([sys.executable, "-m", "llmling.server"])
+
+
+@pytest.fixture
+def test_config() -> Config:
+    """Create test configuration."""
+    prompt = StaticPrompt(
+        name="test",
+        description="test",
+        messages=[PromptMessage(role="system", content="test")],
+    )
+    resource = TextResource(
+        content="Test content",
+        description="Test resource",
+    )
+    tool_cfg = ToolConfig(
+        import_path="llmling.testing.tools.example_tool",
+        name="example",
+        description="Test tool",
+    )
+    return Config(
+        version="1.0",
+        prompts={"test": prompt},
+        resources={"test": resource},
+        tools={"example": tool_cfg},
+    )
+
+
+@pytest.fixture
+async def config_file(tmp_path: Path, test_config: Config) -> Path:
+    """Create temporary config file."""
+    config_path = tmp_path / "test_config.yml"
+    content = test_config.model_dump(exclude_none=True)
+    config_path.write_text(yaml.dump(content))
+    return config_path
+
+
+@pytest.fixture
+async def configured_client(config_file: Path) -> AsyncIterator[MCPInProcSession]:
+    """Create client with test configuration."""
+    client = MCPInProcSession(config_path=str(config_file))
+    try:
+        await client.start()
+        response = await client.do_handshake()
+        assert response["serverInfo"]["name"] == "llmling-server"
+        yield client
+    finally:
+        await client.close()
