@@ -14,7 +14,6 @@ from llmling.config.models import (
     TextResource,
     ToolConfig,
 )
-import logfire
 from py2openai import OpenAIFunctionTool  # noqa: TC002
 from pydantic import BaseModel
 from pydantic.fields import Field
@@ -26,11 +25,70 @@ from mcp_server_llmling.transports.stdio import StdioServer
 if TYPE_CHECKING:
     from mcp_server_llmling.server import LLMLingServer
 
+# from mcp_server_llmling.ui import create_ui_app
+
 
 logger = get_logger(__name__)
 
 
 ComponentType = Literal["resource", "tool", "prompt"]
+
+
+def create_app() -> FastAPI:
+    """Create FastAPI application for config injection."""
+    return FastAPI(
+        title="LLMling Config Injection API",
+        description="""
+        API for hot-injecting configuration into running LLMling server.
+
+        ## Features
+        * Inject new resources
+        * Update existing tools
+        * Real-time configuration updates
+        * WebSocket support for live updates
+
+        ## WebSocket Interface
+        Connect to `/ws` for real-time updates. The WebSocket interface supports:
+
+        ### Message Types
+        * update: Update components in real-time
+        * query: Query current component status
+        * error: Error reporting from client
+
+        ### Message Format
+        ```json
+        {
+            "type": "update|query|error",
+            "data": {
+                "resources": {...},
+                "tools": {...}
+            },
+            "request_id": "optional-correlation-id"
+        }
+        ```
+
+        ### Response Format
+        ```json
+        {
+            "type": "success|error|update",
+            "data": {...},
+            "request_id": "correlation-id",
+            "message": "optional status message"
+        }
+        ```
+        """,
+        version="1.0.0",
+        openapi_tags=[
+            {
+                "name": "components",
+                "description": "Server component operations (resources/tools/prompts)",
+            },
+            {"name": "config", "description": "Configuration management endpoints"},
+        ],
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
+    )
 
 
 class ComponentResponse(BaseModel):
@@ -104,18 +162,37 @@ class ConfigInjectionServer:
         self.llm_server = llm_server
         self.host = host
         self.port = port
-        self.app = FastAPI(
-            title="LLMling Config Injection",
-            description="Hot-inject configuration into running LLMling server",
-        )
+        self.app = create_app()
+        # create_ui_app(self.app)
         self._setup_routes()
         self._server: Any = None  # uvicorn server instance
 
     def _setup_routes(self) -> None:
         """Set up API routes."""
 
-        @self.app.post("/inject-config")
-        @logfire.instrument("Inject raw YAML config")
+        @self.app.post(
+            "/inject-config",
+            response_model=ComponentResponse,
+            tags=["config"],
+            summary="Inject new configuration",
+            description="Inject new configuration into the running server.",
+            responses={
+                200: {
+                    "description": "Configuration successfully injected",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "status": "success",
+                                "message": "Config injected successfully",
+                                "component_type": "resource",
+                                "name": "example_resource",
+                            }
+                        }
+                    },
+                },
+                400: {"description": "Invalid configuration"},
+            },
+        )
         async def inject_config(config: dict[str, Any]) -> ComponentResponse:
             """Inject raw YAML configuration."""
             logger.debug("Received config: %s", config)
@@ -175,7 +252,27 @@ class ConfigInjectionServer:
             else:
                 return result
 
-        @self.app.get("/components")
+        @self.app.get(
+            "/components",
+            tags=["components"],
+            summary="List all components",
+            description="Get a list of all registered components grouped by type.",
+            response_description="Dictionary containing arrays of component names",
+            responses={
+                200: {
+                    "description": "List of all components",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "resources": ["resource1", "resource2"],
+                                "tools": ["tool1", "tool2"],
+                                "prompts": ["prompt1", "prompt2"],
+                            }
+                        }
+                    },
+                }
+            },
+        )
         async def list_components() -> dict[str, Sequence[str]]:
             """List all registered components."""
             return {
@@ -185,8 +282,21 @@ class ConfigInjectionServer:
             }
 
         # Resource endpoints
-        @self.app.post("/resources/{name}", response_model=ComponentResponse)
-        @logfire.instrument("Inject resource")
+        @self.app.post(
+            "/resources/{name}",
+            response_model=ComponentResponse,
+            tags=["components"],
+            summary="Add or update resource",
+            description="""
+            Register a new resource or update an existing one.
+            Supports various resource types including path, text, CLI, source,
+            callable, and image.
+            """,
+            responses={
+                200: {"description": "Resource successfully registered"},
+                400: {"description": "Invalid resource configuration"},
+            },
+        )
         async def add_resource(name: str, resource: Resource) -> ComponentResponse:
             """Add or update a resource."""
             try:
@@ -200,7 +310,28 @@ class ConfigInjectionServer:
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e)) from e
 
-        @self.app.get("/resources")
+        @self.app.get(
+            "/resources",
+            tags=["components"],
+            summary="List all resources",
+            description="Get a list of all registered resources with their full config.",
+            responses={
+                200: {
+                    "description": "Dictionary of resources",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "resource1": {
+                                    "type": "text",
+                                    "content": "Example content",
+                                },
+                                "resource2": {"type": "path", "path": "/example/path"},
+                            }
+                        }
+                    },
+                }
+            },
+        )
         async def list_resources() -> dict[str, Resource]:
             """List all resources with their configuration."""
             return {
@@ -208,7 +339,17 @@ class ConfigInjectionServer:
                 for name in self.llm_server.runtime.list_resource_names()
             }
 
-        @self.app.delete("/resources/{name}", response_model=ComponentResponse)
+        @self.app.delete(
+            "/resources/{name}",
+            response_model=ComponentResponse,
+            tags=["components"],
+            summary="Remove resource",
+            description="Remove a registered resource by name.",
+            responses={
+                200: {"description": "Resource successfully removed"},
+                404: {"description": "Resource not found"},
+            },
+        )
         async def remove_resource(name: str) -> ComponentResponse:
             """Remove a resource."""
             try:
@@ -225,8 +366,17 @@ class ConfigInjectionServer:
                 ) from e
 
         # Tool endpoints
-        @self.app.post("/tools/{name}", response_model=ComponentResponse)
-        @logfire.instrument("Inject tool")
+        @self.app.post(
+            "/tools/{name}",
+            response_model=ComponentResponse,
+            tags=["components"],
+            summary="Add or update tool",
+            description="Register a new tool or update an existing one.",
+            responses={
+                200: {"description": "Tool successfully registered"},
+                400: {"description": "Invalid tool configuration"},
+            },
+        )
         async def add_tool(name: str, tool: ToolConfig) -> ComponentResponse:
             """Add or update a tool."""
             try:
@@ -240,7 +390,32 @@ class ConfigInjectionServer:
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e)) from e
 
-        @self.app.get("/tools")
+        @self.app.get(
+            "/tools",
+            tags=["components"],
+            summary="List all tools",
+            description="Get a list of all registered tools with their OpenAPI schemas.",
+            responses={
+                200: {
+                    "description": "Dictionary of tools with their schemas",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "tool1": {
+                                    "name": "tool1",
+                                    "description": "Example tool",
+                                    "parameters": {
+                                        "type": "object",
+                                        "properties": {},
+                                    },
+                                }
+                            }
+                        }
+                    },
+                },
+                500: {"description": "Failed to get tool schemas"},
+            },
+        )
         async def list_tools() -> dict[str, OpenAIFunctionTool]:
             """List all tools with their OpenAPI schemas."""
             try:
@@ -253,7 +428,17 @@ class ConfigInjectionServer:
                     status_code=500, detail=f"Failed to get tool schemas: {e}"
                 ) from e
 
-        @self.app.delete("/tools/{name}", response_model=ComponentResponse)
+        @self.app.delete(
+            "/tools/{name}",
+            response_model=ComponentResponse,
+            tags=["components"],
+            summary="Remove tool",
+            description="Remove a registered tool by name.",
+            responses={
+                200: {"description": "Tool successfully removed"},
+                404: {"description": "Tool not found"},
+            },
+        )
         async def remove_tool(name: str) -> ComponentResponse:
             """Remove a tool."""
             try:
@@ -270,8 +455,38 @@ class ConfigInjectionServer:
                 ) from e
 
         # Bulk update endpoint
-        @self.app.post("/bulk-update", response_model=BulkUpdateResponse)
-        @logfire.instrument("Bulk component update")
+        @self.app.post(
+            "/bulk-update",
+            response_model=BulkUpdateResponse,
+            tags=["config"],
+            summary="Bulk update components",
+            description="""
+            Update multiple components in a single request.
+
+            This endpoint allows you to register multiple resources and tools at once.
+            Failed operations will be reported in the response but won't affect others.
+            """,
+            responses={
+                200: {
+                    "description": "Bulk update results",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "results": [
+                                    {
+                                        "status": "success",
+                                        "message": "Resource registered",
+                                        "component_type": "resource",
+                                        "name": "example",
+                                    }
+                                ],
+                                "summary": {"success": 1, "error": 0},
+                            }
+                        }
+                    },
+                },
+            },
+        )
         async def bulk_update(request: ConfigUpdateRequest) -> BulkUpdateResponse:
             """Update multiple components at once."""
             responses: list[ComponentResponse] = []
@@ -332,7 +547,11 @@ class ConfigInjectionServer:
             return BulkUpdateResponse(results=responses, summary=summary)
 
         # WebSocket endpoint
-        @self.app.websocket("/ws")
+        @self.app.websocket(
+            "/ws",
+            name="component_updates",
+            dependencies=None,
+        )
         async def websocket_endpoint(websocket: WebSocket) -> None:
             """Handle WebSocket connections."""
             await websocket.accept()
@@ -447,3 +666,30 @@ if __name__ == "__main__":
                 },
             )
             print(response.json())
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    from llmling import Config, RuntimeConfig
+
+    from mcp_server_llmling.server import LLMLingServer
+
+    async def main() -> None:
+        # Create minimal config
+        config = Config.model_validate({
+            "global_settings": {},
+            "resources": {"initial": {"type": "text", "content": "Initial resource"}},
+        })
+
+        async with RuntimeConfig.from_config(config) as runtime:
+            server = LLMLingServer(
+                runtime,
+                transport="stdio",
+                enable_injection=True,  # Enable our injection server
+                injection_port=8765,
+            )
+            print("Starting server with injection endpoint at http://localhost:8765")
+            await server.start(raise_exceptions=True)
+
+    asyncio.run(main())
