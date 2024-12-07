@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/phil65/LLMling/refs/heads/main/schema/config-schema.json
+global_settings:
+  scripts:
+    - "https://gist.githubusercontent.com/phil65/9b57d35ea63f354cf056e0c7d4a62885/raw/d69c01f1bc56a18a1a0e3292a32003f6c4ab6a6f/get_readme.py"
+    - "https://gist.githubusercontent.com/phil65/bae47ad9c737c6f584707944bc793f49/raw/ed803dcde7ecb972cbabd629413d3a639b8f6920/uithub.py"
+    - "https://gist.githubusercontent.com/phil65/20825723aaa647a4c3fe4d8a978f92fa/raw/7725e75ab363ec306969cfb03eccbef9926950b2/github.py"
+    - "https://gist.githubusercontent.com/phil65/1af7776dc82d6cf3906e7f49218f1999/raw/0db437ef947020d06bed529a06b88231cd73fed9/trafilatura.py"
+  log_level: "DEBUG"
+
+prompts:
+  repo_contents:
+    type: function
+    name: Repo contents
+    import_path: uithub.get_repo_contents_single
+    description: "Fetch Repo map from Uithub"
+  readme:
+    type: function
+    name: Get readme
+    import_path: get_readme.get_readme
+    description: "Fetch README.md for PyPi package"
+  github_url:
+    type: function
+    name: Fetch files from GitHub
+    import_path: github.fetch_from_github_url
+    description: "Fetch Repo map from Uithub"
+
+tools:
+  get_readme:
+    import_path: get_readme.get_readme
+    description: "Fetch README.md for PyPi package"
+  get_repo_contents:
+    import_path: uithub.get_repo_contents
+    description: "Fetch README.md for PyPi package"
