@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
-import sys
 from typing import TYPE_CHECKING, Any
 
 import logfire
 import pytest
+
+from mcp_server_llmling import constants
 
 
 if TYPE_CHECKING:
@@ -42,7 +43,7 @@ async def test_server_lifecycle_handshake_client(client: MCPInProcSession) -> No
         assert isinstance(init_response, dict)
         assert "serverInfo" in init_response
         server_info = init_response["serverInfo"]
-        assert server_info["name"] == "llmling-server"
+        assert server_info["name"] == constants.SERVER_NAME
         assert "version" in server_info
         assert "capabilities" in init_response
 
@@ -88,7 +89,7 @@ async def test_server_lifecycle_test_session(
     assert "result" in response.root.model_dump()
     result = response.root.result
     assert "serverInfo" in result
-    assert result["serverInfo"]["name"] == "llmling-server"
+    assert result["serverInfo"]["name"] == constants.SERVER_NAME
 
     # Send initialized notification
     from mcp.types import JSONRPCNotification
@@ -146,9 +147,7 @@ async def test_server_lifecycle_direct(
 async def test_server_lifecycle_subprocess() -> None:
     """Test server lifecycle using raw subprocess."""
     process = await asyncio.create_subprocess_exec(
-        sys.executable,
-        "-m",
-        "llmling.server",
+        *constants.SERVER_CMD,
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -195,7 +194,7 @@ async def test_server_lifecycle_subprocess() -> None:
                 result = json.loads(response.decode())
                 assert "result" in result
                 assert "serverInfo" in result["result"]
-                assert result["result"]["serverInfo"]["name"] == "llmling-server"
+                assert result["result"]["serverInfo"]["name"] == constants.SERVER_NAME
                 break  # Valid response found
             except json.JSONDecodeError:
                 continue  # Skip non-JSON lines

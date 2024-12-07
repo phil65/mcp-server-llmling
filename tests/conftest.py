@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import sys
 from typing import TYPE_CHECKING, Any
 
 from llmling.config.models import Config, GlobalSettings, TextResource, ToolConfig
@@ -20,13 +19,15 @@ from mcp.shared.memory import create_client_server_memory_streams
 import pytest
 import yaml
 
-from mcp_server_llmling import LLMLingServer
+from mcp_server_llmling import LLMLingServer, constants
 from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
 
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
     from pathlib import Path
+
+EXAMPLE_TOOL = "llmling.testing.tools.example_tool"
 
 
 @pytest.fixture
@@ -94,7 +95,7 @@ def runtime_config(base_config: Config) -> RuntimeConfig:
 @pytest.fixture
 async def server(runtime_config: RuntimeConfig) -> AsyncIterator[LLMLingServer]:
     """Create configured test server."""
-    server = LLMLingServer(runtime=runtime_config, name="llmling-server")
+    server = LLMLingServer(runtime=runtime_config, name=constants.SERVER_NAME)
 
     try:
         yield server
@@ -126,25 +127,17 @@ async def running_server(
 @pytest.fixture
 async def client() -> MCPInProcSession:
     """Create a test client."""
-    return MCPInProcSession([sys.executable, "-m", "llmling.server"])
+    return MCPInProcSession(constants.SERVER_CMD)
 
 
 @pytest.fixture
 def test_config() -> Config:
     """Create test configuration."""
-    prompt = StaticPrompt(
-        name="test",
-        description="test",
-        messages=[PromptMessage(role="system", content="test")],
-    )
-    resource = TextResource(
-        content="Test content",
-        description="Test resource",
-    )
+    msgs = [PromptMessage(role="system", content="test")]
+    prompt = StaticPrompt(name="test", description="test", messages=msgs)
+    resource = TextResource(content="Test content", description="Test resource")
     tool_cfg = ToolConfig(
-        import_path="llmling.testing.tools.example_tool",
-        name="example",
-        description="Test tool",
+        import_path=EXAMPLE_TOOL, name="example", description="Test tool"
     )
     return Config(
         version="1.0",
@@ -170,7 +163,7 @@ async def configured_client(config_file: Path) -> AsyncIterator[MCPInProcSession
     try:
         await client.start()
         response = await client.do_handshake()
-        assert response["serverInfo"]["name"] == "llmling-server"
+        assert response["serverInfo"]["name"] == constants.SERVER_NAME
         yield client
     finally:
         await client.close()

@@ -5,9 +5,9 @@ import contextlib
 import json
 import os
 import subprocess
-import sys
 from typing import Any
 
+from mcp_server_llmling import constants
 from mcp_server_llmling.log import get_logger
 
 
@@ -30,10 +30,11 @@ class MCPInProcSession:
         """Initialize server-client session.
 
         Args:
-            server_command: Command to start server (default: python -m llmling.server)
+            server_command: Command to start server
+                            (default: python -m mcp_server_llmling start)
             config_path: Path to config file to use
         """
-        cmd = [sys.executable, "-m", "llmling.server"]
+        cmd = constants.SERVER_CMD.copy()
         if config_path:
             cmd.append(config_path)
         self.server_command = cmd

@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from mcp_server_llmling import constants
+
 
 if TYPE_CHECKING:
     from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
@@ -100,7 +102,7 @@ async def test_mcp_handshake(configured_client: MCPInProcSession) -> None:
     # Verify server info
     assert "serverInfo" in init_response
     server_info = init_response["serverInfo"]
-    assert server_info["name"] == "llmling-server"
+    assert server_info["name"] == constants.SERVER_NAME
     assert "version" in server_info
 
     # Verify capabilities

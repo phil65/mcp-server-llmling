@@ -10,9 +10,10 @@ from pathlib import Path
 import sys
 from typing import TYPE_CHECKING, Any
 
+from llmling import config_resources
 import typer as t
 
-from mcp_server_llmling import __version__
+from mcp_server_llmling import __version__, constants
 from mcp_server_llmling.factory import create_runtime_config
 from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.server import LLMLingServer
@@ -98,7 +99,11 @@ def quiet_callback(ctx: t.Context, _param: t.CallbackParam, value: bool) -> bool
 
 @cli.command()
 def start(
-    config_path: Path = t.Option(None, *CONFIG_CMDS, help=CONFIG_HELP),  # noqa: B008
+    config_path: Path = t.Argument(  # noqa: B008
+        config_resources.TEST_CONFIG,  # ""..."" for required
+        help=CONFIG_HELP,
+        exists=True,
+    ),
     transport: str = t.Option(
         "stdio",
         *TRANSPORT_CMDS,
@@ -109,10 +114,10 @@ def start(
     port: int = t.Option(8000, *PORT_CMDS, help=PORT_HELP),
     injection_host: str = t.Option("localhost", help=INJ_HOST_HELP),
     injection_port: int = t.Option(8765, help=INJ_PORT_HELP),
-    server_name: str = t.Option("llmling-server", *NAME_CMDS, help=NAME_HELP),
+    server_name: str = t.Option(constants.SERVER_NAME, *NAME_CMDS, help=NAME_HELP),
     log_level: LogLevel = t.Option(LogLevel.INFO, "-l", "--log-level"),  # noqa: B008
     timeout: float = t.Option(30.0, help=TIMEOUT_HELP),
-    enable_injection: bool = t.Option(True, help="Enable config injection server"),
+    enable_injection: bool = t.Option(False, help="Enable config injection server"),
     verbose: bool = t.Option(
         False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback
     ),

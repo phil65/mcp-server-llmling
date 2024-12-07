@@ -12,6 +12,7 @@ from llmling.config.runtime import RuntimeConfig
 from mcp.server import NotificationOptions, Server
 from pydantic import AnyUrl
 
+from mcp_server_llmling import constants
 from mcp_server_llmling.handlers import register_handlers
 from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.observers import PromptObserver, ResourceObserver, ToolObserver
@@ -40,9 +41,9 @@ class LLMLingServer:
         runtime: RuntimeConfig,
         *,
         transport: TransportType = "stdio",
-        name: str = "llmling-server",
+        name: str = constants.SERVER_NAME,
         transport_options: dict[str, Any] | None = None,
-        enable_injection: bool = True,
+        enable_injection: bool = False,
         injection_port: int = 8765,
     ) -> None:
         """Initialize server with runtime configuration.
@@ -73,11 +74,12 @@ class LLMLingServer:
         if enable_injection and isinstance(self.transport, StdioServer):
             from mcp_server_llmling.injection import ConfigInjectionServer
 
-            self.injection_server = ConfigInjectionServer(
+            self.injection_server: ConfigInjectionServer | None = ConfigInjectionServer(
                 self,
                 port=injection_port,
             )
-
+        else:
+            self.injection_server = None
         self._setup_handlers()
         self._setup_observers()
 
@@ -101,7 +103,7 @@ class LLMLingServer:
         config_path: str | os.PathLike[str],
         *,
         transport: TransportType = "stdio",
-        name: str = "llmling-server",
+        name: str = constants.SERVER_NAME,
         transport_options: dict[str, Any] | None = None,
     ) -> AsyncIterator[LLMLingServer]:
         """Create and run server from config file with proper context management."""
