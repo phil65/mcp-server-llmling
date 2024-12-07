@@ -11,11 +11,7 @@ from mcp import types
 
 
 if TYPE_CHECKING:
-    from llmling.prompts.models import (
-        BasePrompt as InternalPrompt,
-        ExtendedPromptArgument,
-        PromptMessage,
-    )
+    from llmling.prompts.models import BasePrompt, PromptMessage, PromptParameter
     from llmling.resources.models import LoadedResource
     from llmling.tools.base import LLMCallableTool
 
@@ -61,7 +57,7 @@ def to_mcp_message(msg: PromptMessage) -> types.PromptMessage:
     )
 
 
-def to_mcp_argument(prompt_arg: ExtendedPromptArgument) -> types.PromptArgument:
+def to_mcp_argument(prompt_arg: PromptParameter) -> types.PromptArgument:
     """Convert to MCP PromptArgument."""
     return types.PromptArgument(
         name=prompt_arg.name,
@@ -70,13 +66,13 @@ def to_mcp_argument(prompt_arg: ExtendedPromptArgument) -> types.PromptArgument:
     )
 
 
-def to_mcp_prompt(prompt: InternalPrompt) -> types.Prompt:
+def to_mcp_prompt(prompt: BasePrompt) -> types.Prompt:
     """Convert to MCP Prompt."""
-    return types.Prompt(
-        name=prompt.name,
-        description=prompt.description,
-        arguments=[to_mcp_argument(arg) for arg in prompt.arguments],
-    )
+    if prompt.name is None:
+        msg = "Prompt name not set. This should be set during registration."
+        raise ValueError(msg)
+    args = [to_mcp_argument(arg) for arg in prompt.arguments]
+    return types.Prompt(name=prompt.name, description=prompt.description, arguments=args)
 
 
 def _is_windows_drive_letter(text: str) -> bool:
@@ -98,11 +94,8 @@ def _normalize_windows_path(path: str) -> str:
 def _denormalize_windows_path(path: str) -> str:
     """Convert URL path back to Windows format."""
     parts = path.strip("/").split("/")
-    if (
-        parts
-        and len(parts) > 1  # Need at least drive + path
-        and _is_windows_drive_letter(parts[0])
-    ):
+    # Need at least drive + path
+    if parts and len(parts) > 1 and _is_windows_drive_letter(parts[0]):
         drive = parts[0].upper()
         rest = "/".join(parts[1:])
         return f"{drive}:/{rest}"
