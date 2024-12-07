@@ -498,24 +498,22 @@ class ConfigInjectionServer:
                         self.llm_server.runtime.register_resource(
                             name, resource, replace=request.replace_existing
                         )
-                        responses.append(
-                            ComponentResponse(
-                                status="success",
-                                message=f"Resource {name} registered",
-                                component_type="resource",
-                                name=name,
-                            )
+                        response = ComponentResponse(
+                            status="success",
+                            message=f"Resource {name} registered",
+                            component_type="resource",
+                            name=name,
                         )
+                        responses.append(response)
                         summary["success"] += 1
                     except Exception as e:  # noqa: BLE001
-                        responses.append(
-                            ComponentResponse(
-                                status="error",
-                                message=str(e),
-                                component_type="resource",
-                                name=name,
-                            )
+                        response = ComponentResponse(
+                            status="error",
+                            message=str(e),
+                            component_type="resource",
+                            name=name,
                         )
+                        responses.append(response)
                         summary["error"] += 1
 
             if request.tools:
@@ -524,24 +522,22 @@ class ConfigInjectionServer:
                         self.llm_server.runtime._tool_registry.register(
                             name, tool, replace=request.replace_existing
                         )
-                        responses.append(
-                            ComponentResponse(
-                                status="success",
-                                message=f"Tool {name} registered",
-                                component_type="tool",
-                                name=name,
-                            )
+                        response = ComponentResponse(
+                            status="success",
+                            message=f"Tool {name} registered",
+                            component_type="tool",
+                            name=name,
                         )
+                        responses.append(response)
                         summary["success"] += 1
                     except Exception as e:  # noqa: BLE001
-                        responses.append(
-                            ComponentResponse(
-                                status="error",
-                                message=str(e),
-                                component_type="tool",
-                                name=name,
-                            )
+                        response = ComponentResponse(
+                            status="error",
+                            message=str(e),
+                            component_type="tool",
+                            name=name,
                         )
+                        responses.append(response)
                         summary["error"] += 1
 
             return BulkUpdateResponse(results=responses, summary=summary)
@@ -641,10 +637,8 @@ if __name__ == "__main__":
             print(response.json())
 
             # Add a tool
-            response = await client.post(
-                "http://localhost:8765/tools/my_tool",
-                json={"import_path": "myapp.tools.analyze"},
-            )
+            url = "http://localhost:8765/tools/my_tool"
+            response = await client.post(url, json={"import_path": "myapp.tools.analyze"})
             print(response.json())
 
             # List all components

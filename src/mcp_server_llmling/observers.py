@@ -33,70 +33,49 @@ class ResourceObserver:
 
     def _handle_resource_added(self, key: str, resource: Resource) -> None:
         """Handle resource addition."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.RESOURCE_ADDED,
-                    source="resource_registry",
-                    name=key,
-                    data=resource,
-                )
-            )
+        event = Event(
+            type=EventType.RESOURCE_ADDED,
+            source="resource_registry",
+            name=key,
+            data=resource,
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_resource_list_changed())
 
     def _handle_resource_modified(self, key: str, resource: Resource) -> None:
         """Handle resource modification."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.RESOURCE_MODIFIED,
-                    source="resource_registry",
-                    name=key,
-                    data=resource,
-                )
-            )
+        event = Event(
+            type=EventType.RESOURCE_MODIFIED,
+            source="resource_registry",
+            name=key,
+            data=resource,
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         loader = self.server.runtime.get_resource_loader(resource)
         uri = loader.create_uri(name=key)
         self.server._create_task(self.server.notify_resource_change(uri))
 
     def _handle_resource_removed(self, key: str, resource: Resource) -> None:
         """Handle resource removal."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.RESOURCE_REMOVED,
-                    source="resource_registry",
-                    name=key,
-                    data=resource,
-                )
-            )
+        event = Event(
+            type=EventType.RESOURCE_REMOVED,
+            source="resource_registry",
+            name=key,
+            data=resource,
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_resource_list_changed())
 
     def _handle_resource_list_changed(self) -> None:
         """Handle resource list changes."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.RESOURCE_LIST_CHANGED,
-                    source="resource_registry",
-                )
-            )
-        )
+        event = Event(type=EventType.RESOURCE_LIST_CHANGED, source="resource_registry")
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_resource_list_changed())
 
     def _handle_registry_reset(self) -> None:
         """Handle registry reset."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.REGISTRY_RESET,
-                    source="resource_registry",
-                )
-            )
-        )
+        event = Event(type=EventType.REGISTRY_RESET, source="resource_registry")
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_resource_list_changed())
 
 
@@ -114,68 +93,47 @@ class PromptObserver:
 
     def _handle_prompt_added(self, key: str, prompt: BasePrompt) -> None:
         """Handle prompt addition."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.PROMPT_ADDED,
-                    source="prompt_registry",
-                    name=key,
-                    data=prompt,
-                )
-            )
+        event = Event(
+            type=EventType.PROMPT_ADDED,
+            source="prompt_registry",
+            name=key,
+            data=prompt,
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_prompt_list_changed())
 
     def _handle_prompt_modified(self, key: str, prompt: BasePrompt) -> None:
         """Handle prompt modification."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.PROMPT_MODIFIED,
-                    source="prompt_registry",
-                    name=key,
-                    data=prompt,
-                )
-            )
+        event = Event(
+            type=EventType.PROMPT_MODIFIED,
+            source="prompt_registry",
+            name=key,
+            data=prompt,
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_prompt_list_changed())
 
     def _handle_prompt_removed(self, key: str, prompt: BasePrompt) -> None:
         """Handle prompt removal."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.PROMPT_REMOVED,
-                    source="prompt_registry",
-                    name=key,
-                    data=prompt,
-                )
-            )
+        event = Event(
+            type=EventType.PROMPT_REMOVED,
+            source="prompt_registry",
+            name=key,
+            data=prompt,
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_prompt_list_changed())
 
     def _handle_prompt_list_changed(self) -> None:
         """Handle prompt list changes."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.PROMPT_LIST_CHANGED,
-                    source="prompt_registry",
-                )
-            )
-        )
+        event = Event(type=EventType.PROMPT_LIST_CHANGED, source="prompt_registry")
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_prompt_list_changed())
 
     def _handle_registry_reset(self) -> None:
         """Handle registry reset."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.REGISTRY_RESET,
-                    source="prompt_registry",
-                )
-            )
-        )
+        event = Event(type=EventType.REGISTRY_RESET, source="prompt_registry")
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_prompt_list_changed())
 
 
@@ -193,66 +151,36 @@ class ToolObserver:
 
     def _handle_tool_added(self, key: str, tool: LLMCallableTool) -> None:
         """Handle tool addition."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.TOOL_ADDED,
-                    source="tool_registry",
-                    name=key,
-                    data=tool,
-                )
-            )
+        event = Event(
+            type=EventType.TOOL_ADDED, source="tool_registry", name=key, data=tool
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_tool_list_changed())
 
     def _handle_tool_modified(self, key: str, tool: LLMCallableTool) -> None:
         """Handle tool modification."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.TOOL_MODIFIED,
-                    source="tool_registry",
-                    name=key,
-                    data=tool,
-                )
-            )
+        event = Event(
+            type=EventType.TOOL_MODIFIED, source="tool_registry", name=key, data=tool
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_tool_list_changed())
 
     def _handle_tool_removed(self, key: str, tool: LLMCallableTool) -> None:
         """Handle tool removal."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.TOOL_REMOVED,
-                    source="tool_registry",
-                    name=key,
-                    data=tool,
-                )
-            )
+        event = Event(
+            type=EventType.TOOL_REMOVED, source="tool_registry", name=key, data=tool
         )
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_tool_list_changed())
 
     def _handle_tool_list_changed(self) -> None:
         """Handle tool list changes."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.TOOL_LIST_CHANGED,
-                    source="tool_registry",
-                )
-            )
-        )
+        event = Event(type=EventType.TOOL_LIST_CHANGED, source="tool_registry")
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_tool_list_changed())
 
     def _handle_registry_reset(self) -> None:
         """Handle registry reset."""
-        self.server._create_task(
-            self.server.runtime.emit_event(
-                Event(
-                    type=EventType.REGISTRY_RESET,
-                    source="tool_registry",
-                )
-            )
-        )
+        event = Event(type=EventType.REGISTRY_RESET, source="tool_registry")
+        self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_tool_list_changed())
