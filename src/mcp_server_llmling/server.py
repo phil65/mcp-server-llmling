@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     import os
 
     import mcp
+    from mcp import Implementation
 
     from mcp_server_llmling.transports.base import TransportBase
 
@@ -120,6 +121,28 @@ class LLMLingServer:
                 yield server
             finally:
                 await server.shutdown()
+
+    def get_client_info(self) -> Implementation:
+        """Get information about the connected client.
+
+        Returns:
+            Implementation: Client name and version information
+                        {name: str, version: str}
+
+        Raises:
+            RuntimeError: If there is no active client connection or
+                        client info not available
+        """
+        try:
+            session = self.current_session
+            if not session.client_params:
+                msg = "No client initialization parameters available"
+                raise RuntimeError(msg)  # noqa: TRY301
+        except Exception as exc:
+            msg = "Failed to get client information"
+            raise RuntimeError(msg) from exc
+        else:
+            return session.client_params.clientInfo
 
     def _create_task(self, coro: Coroutine[None, None, Any]) -> asyncio.Task[Any]:
         """Create and track an asyncio task."""
