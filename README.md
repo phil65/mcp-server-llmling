@@ -107,6 +107,7 @@ Add LLMLing as a context server in your `settings.json`:
         "path": "uvx",
         "args": [
           "mcp-server-llmling",
+          "start",
           "path/to/your/config.yml"
         ]
       },
@@ -127,6 +128,7 @@ Configure LLMLing in your `claude_desktop_config.json`:
       "command": "uvx",
       "args": [
         "mcp-server-llmling",
+        "start",
         "path/to/your/config.yml"
       ],
       "env": {}
