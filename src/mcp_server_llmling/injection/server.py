@@ -187,12 +187,7 @@ if __name__ == "__main__":
         })
 
         async with RuntimeConfig.from_config(config) as runtime:
-            server = LLMLingServer(
-                runtime,
-                transport="stdio",
-                enable_injection=True,  # Enable our injection server
-                injection_port=8765,
-            )
+            server = LLMLingServer(runtime, enable_injection=True)
             print("Starting server with injection endpoint at http://localhost:8765")
             await server.start(raise_exceptions=True)
 

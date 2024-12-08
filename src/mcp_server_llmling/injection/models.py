@@ -27,6 +27,18 @@ class ComponentResponse(BaseModel):
     name: str
 
 
+class SuccessResponse(ComponentResponse):
+    """Response model for successful component operations."""
+
+    status: Literal["success"] = Field(default="success", init=False)
+
+
+class ErrorResponse(ComponentResponse):
+    """Response model for failed component operations."""
+
+    status: Literal["error"] = Field(default="error", init=False)
+
+
 class ConfigUpdate(BaseModel):
     """Model for config updates."""
 

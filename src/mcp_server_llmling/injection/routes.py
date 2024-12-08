@@ -20,6 +20,8 @@ from mcp_server_llmling.injection.models import (
     BulkUpdateResponse,
     ComponentResponse,
     ConfigUpdateRequest,
+    ErrorResponse,
+    SuccessResponse,
     WebSocketMessage,
     WebSocketResponse,
 )
@@ -105,13 +107,9 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                         name, validated, replace=True
                     )
                     logger.debug("Tool %s registered", name)
-
-            result = ComponentResponse(
-                status="success",
-                message="Config injected successfully",
-                component_type="tool",
-                name="yaml_injection",
-            )
+            msg = "Config injected successfully"
+            name = "yaml_injection"
+            result = SuccessResponse(message=msg, component_type="tool", name=name)
             logger.debug("Returning response: %s", result.model_dump())
         except Exception as e:
             logger.exception("Failed to inject config")
@@ -168,12 +166,8 @@ def setup_routes(server: ConfigInjectionServer) -> None:
         """Add or update a resource."""
         try:
             server.llm_server.runtime.register_resource(name, resource, replace=True)
-            return ComponentResponse(
-                status="success",
-                message=f"Resource {name} registered",
-                component_type="resource",
-                name=name,
-            )
+            msg = f"Resource {name} registered"
+            return SuccessResponse(message=msg, component_type="resource", name=name)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
 
@@ -221,12 +215,8 @@ def setup_routes(server: ConfigInjectionServer) -> None:
         """Remove a resource."""
         try:
             del server.llm_server.runtime._resource_registry[name]
-            return ComponentResponse(
-                status="success",
-                message=f"Resource {name} removed",
-                component_type="resource",
-                name=name,
-            )
+            msg = f"Resource {name} removed"
+            return SuccessResponse(message=msg, component_type="resource", name=name)
         except KeyError as e:
             raise HTTPException(
                 status_code=404, detail=f"Resource {name} not found"
@@ -248,12 +238,8 @@ def setup_routes(server: ConfigInjectionServer) -> None:
         """Add or update a tool."""
         try:
             server.llm_server.runtime._tool_registry.register(name, tool, replace=True)
-            return ComponentResponse(
-                status="success",
-                message=f"Tool {name} registered",
-                component_type="tool",
-                name=name,
-            )
+            msg = f"Tool {name} registered"
+            return SuccessResponse(message=msg, component_type="tool", name=name)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
 
@@ -310,12 +296,8 @@ def setup_routes(server: ConfigInjectionServer) -> None:
         """Remove a tool."""
         try:
             del server.llm_server.runtime._tool_registry[name]
-            return ComponentResponse(
-                status="success",
-                message=f"Tool {name} removed",
-                component_type="tool",
-                name=name,
-            )
+            msg = f"Tool {name} removed"
+            return SuccessResponse(message=msg, component_type="tool", name=name)
         except KeyError as e:
             raise HTTPException(status_code=404, detail=f"Tool {name} not found") from e
 
@@ -356,29 +338,24 @@ def setup_routes(server: ConfigInjectionServer) -> None:
         """Update multiple components at once."""
         responses: list[ComponentResponse] = []
         summary = {"success": 0, "error": 0}
-
+        res: ComponentResponse
         if request.resources:
             for name, resource in request.resources.items():
                 try:
                     server.llm_server.runtime.register_resource(
                         name, resource, replace=request.replace_existing
                     )
-                    response = ComponentResponse(
-                        status="success",
-                        message=f"Resource {name} registered",
-                        component_type="resource",
-                        name=name,
+                    msg = f"Resource {name} registered"
+                    res = SuccessResponse(
+                        message=msg, component_type="resource", name=name
                     )
-                    responses.append(response)
+                    responses.append(res)
                     summary["success"] += 1
                 except Exception as e:  # noqa: BLE001
-                    response = ComponentResponse(
-                        status="error",
-                        message=str(e),
-                        component_type="resource",
-                        name=name,
+                    er = ErrorResponse(
+                        message=str(e), component_type="resource", name=name
                     )
-                    responses.append(response)
+                    responses.append(er)
                     summary["error"] += 1
 
         if request.tools:
@@ -387,22 +364,13 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                     server.llm_server.runtime._tool_registry.register(
                         name, tool, replace=request.replace_existing
                     )
-                    response = ComponentResponse(
-                        status="success",
-                        message=f"Tool {name} registered",
-                        component_type="tool",
-                        name=name,
-                    )
-                    responses.append(response)
+                    msg = f"Tool {name} registered"
+                    res = SuccessResponse(message=msg, component_type="tool", name=name)
+                    responses.append(res)
                     summary["success"] += 1
                 except Exception as e:  # noqa: BLE001
-                    response = ComponentResponse(
-                        status="error",
-                        message=str(e),
-                        component_type="tool",
-                        name=name,
-                    )
-                    responses.append(response)
+                    er = ErrorResponse(message=str(e), component_type="tool", name=name)
+                    responses.append(er)
                     summary["error"] += 1
 
         return BulkUpdateResponse(results=responses, summary=summary)
@@ -426,24 +394,22 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                             if isinstance(message.data, dict):
                                 req = ConfigUpdateRequest.model_validate(message.data)
                                 response = await bulk_update(req)
-                                await websocket.send_json(
-                                    WebSocketResponse(
-                                        type="success",
-                                        data=response.results,
-                                        request_id=message.request_id,
-                                        message="Components updated successfully",
-                                    ).model_dump()
-                                )
+                                data = WebSocketResponse(
+                                    type="success",
+                                    data=response.results,
+                                    request_id=message.request_id,
+                                    message="Components updated successfully",
+                                ).model_dump()
+                                await websocket.send_json(data)
                         case "query":
                             # Handle component queries
                             components = await list_components()
-                            await websocket.send_json(
-                                WebSocketResponse(
-                                    type="success",
-                                    data=components,
-                                    request_id=message.request_id,
-                                ).model_dump()
-                            )
+                            data = WebSocketResponse(
+                                type="success",
+                                data=components,
+                                request_id=message.request_id,
+                            ).model_dump()
+                            await websocket.send_json(data)
                         case "error":
                             logger.error("Client error: %s", message.data)
                 except Exception:
