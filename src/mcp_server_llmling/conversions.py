@@ -37,18 +37,14 @@ def to_mcp_resource(resource: LoadedResource) -> types.Resource:
 def to_mcp_message(msg: PromptMessage) -> types.PromptMessage:
     """Convert internal PromptMessage to MCP PromptMessage."""
     role: types.Role = "assistant" if msg.role == "assistant" else "user"
-    return types.PromptMessage(
-        role=role,
-        content=types.TextContent(type="text", text=msg.get_text_content()),
-    )
+    content = types.TextContent(type="text", text=msg.get_text_content())
+    return types.PromptMessage(role=role, content=content)
 
 
-def to_mcp_argument(prompt_arg: PromptParameter) -> types.PromptArgument:
+def to_mcp_argument(arg: PromptParameter) -> types.PromptArgument:
     """Convert to MCP PromptArgument."""
     return types.PromptArgument(
-        name=prompt_arg.name,
-        description=prompt_arg.description,
-        required=prompt_arg.required,
+        name=arg.name, description=arg.description, required=arg.required
     )
 
 

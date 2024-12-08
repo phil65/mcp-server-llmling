@@ -131,7 +131,6 @@ def start(
             transport_options = {"host": host, "port": port}
 
         with RuntimeConfig.open_sync(config_path) as runtime:
-            logger.debug("Created runtime with config: %s", runtime._config)
             server = LLMLingServer(
                 runtime=runtime,
                 transport=transport,  # type: ignore

@@ -559,10 +559,8 @@ class ConfigInjectionServer:
                         match message.type:
                             case "update":
                                 if isinstance(message.data, dict):
-                                    request = ConfigUpdateRequest.model_validate(
-                                        message.data
-                                    )
-                                    response = await bulk_update(request)
+                                    req = ConfigUpdateRequest.model_validate(message.data)
+                                    response = await bulk_update(req)
                                     await websocket.send_json(
                                         WebSocketResponse(
                                             type="success",
@@ -586,14 +584,13 @@ class ConfigInjectionServer:
                     except Exception:
                         error_msg = "Operation failed"
                         logger.exception(error_msg)
-                        await websocket.send_json(
-                            WebSocketResponse(
-                                type="error",
-                                data={},
-                                message=error_msg,
-                                request_id=getattr(message, "request_id", None),
-                            ).model_dump()
-                        )
+                        response = WebSocketResponse(
+                            type="error",
+                            data={},
+                            message=error_msg,
+                            request_id=getattr(message, "request_id", None),
+                        ).model_dump()
+                        await websocket.send_json(response)
             except WebSocketDisconnect:
                 logger.debug("WebSocket client disconnected")
 
@@ -606,10 +603,7 @@ class ConfigInjectionServer:
         import uvicorn
 
         config = uvicorn.Config(
-            self.app,
-            host=self.host,
-            port=self.port,
-            log_level="info",
+            self.app, host=self.host, port=self.port, log_level="info"
         )
         self._server = uvicorn.Server(config)
         # Run in same event loop
