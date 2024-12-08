@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
+import contextlib
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, Literal, Self
 
@@ -144,9 +145,12 @@ class LLMLingServer:
     async def start(self, *, raise_exceptions: bool = False) -> None:
         """Start the server."""
         try:
+            # Start injection server in a separate task if enabled
+            injection_task = None
             if self.injection_server:
                 try:
-                    await self.injection_server.start()
+                    # Create task but don't await it directly
+                    injection_task = asyncio.create_task(self.injection_server.start())
                     logger.info(
                         "Config injection server listening on port %d",
                         self.injection_server.port,
@@ -155,8 +159,16 @@ class LLMLingServer:
                     logger.exception("Failed to start injection server")
                     if raise_exceptions:
                         raise
+
+            # Run main server
             await self.transport.serve(raise_exceptions=raise_exceptions)
+
         finally:
+            # Clean shutdown
+            if injection_task:
+                injection_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await injection_task
             await self.shutdown()
 
     async def shutdown(self) -> None:

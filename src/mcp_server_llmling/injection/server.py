@@ -108,7 +108,7 @@ class ConfigInjectionServer:
         self._server: Any = None  # uvicorn server instance
 
     async def start(self) -> None:
-        """Start FastAPI server in the same event loop."""
+        """Start FastAPI server."""
         if not isinstance(self.llm_server.transport, StdioServer):
             msg = "Config injection requires stdio transport"
             raise RuntimeError(msg)  # noqa: TRY004
@@ -121,9 +121,10 @@ class ConfigInjectionServer:
             port=self.port,
             log_level="info",
         )
-        self._server = uvicorn.Server(config)
-        # Run in same event loop
-        await self._server.serve()
+        server = uvicorn.Server(config)
+        self._server = server
+        # Start server but don't block
+        server.should_exit = False
 
     async def stop(self) -> None:
         """Stop FastAPI server."""
