@@ -149,32 +149,37 @@ uvx mcp-server-llmling@latest
 ### 1. Programmatic usage
 
 ```python
-from llmling import Config, LLMLingServer
+from llmling import RuntimeConfig
+from mcp_server_llmling import LLMLingServer
 
-# Load configuration
-config = Config.from_file("config.yml")
+async def main() -> None:
+    async with RuntimeConfig.open(config) as runtime:
+        server = LLMLingServer(runtime, enable_injection=True)
+        await server.start()
 
-# Create and start server
-async with LLMLingServer(config) as server:
-    await server.start()
+asyncio.run(main())
 ```
 
 ### 2. Using Custom Transport
 
 ```python
-from llmling import Config, LLMLingServer
+from llmling import RuntimeConfig
+from mcp_server_llmling import LLMLingServer
 
-config = Config.from_file("config.yml")
-server = LLMLingServer(
-    config,
-    transport="sse",
-    transport_options={
-        "host": "localhost",
-        "port": 8000,
-        "cors_origins": ["http://localhost:3000"]
-    }
-)
-await server.start()
+async def main() -> None:
+    async with RuntimeConfig.open(config) as runtime:
+        server = LLMLingServer(
+            config,
+            transport="sse",
+            transport_options={
+                "host": "localhost",
+                "port": 8000,
+                "cors_origins": ["http://localhost:3000"]
+            }
+        )
+        await server.start()
+
+asyncio.run(main())
 ```
 
 ### 3. Resource Configuration
