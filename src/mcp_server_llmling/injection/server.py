@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from typing import TYPE_CHECKING, Any, Literal
 
 from fastapi import FastAPI
 
 from mcp_server_llmling.injection import routes
+from mcp_server_llmling.injection.utils import find_free_port
 from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.transports.stdio import StdioServer
 
 
 if TYPE_CHECKING:
+    import uvicorn
+
     from mcp_server_llmling.server import LLMLingServer
 
 # from mcp_server_llmling.ui import create_ui_app
@@ -92,20 +97,19 @@ class ConfigInjectionServer:
         host: str = "localhost",
         port: int = 8765,
     ) -> None:
-        """Initialize server.
-
-        Args:
-            llm_server: The LLMling server instance
-            host: Host to bind to
-            port: Port to listen on
-        """
+        """Initialize server."""
         self.llm_server = llm_server
         self.host = host
-        self.port = port
+        self._port = port if port != 0 else find_free_port()
         self.app = create_app()
-        # create_ui_app(self.app)
         routes.setup_routes(self)
-        self._server: Any = None  # uvicorn server instance
+        self._server: uvicorn.Server | None = None
+        self._server_task: asyncio.Task[Any] | None = None
+
+    @property
+    def port(self) -> int:
+        """Get server port."""
+        return self._port
 
     async def start(self) -> None:
         """Start FastAPI server."""
@@ -116,21 +120,31 @@ class ConfigInjectionServer:
         import uvicorn
 
         config = uvicorn.Config(
-            self.app,
+            app=self.app,
             host=self.host,
-            port=self.port,
+            port=self._port,
             log_level="info",
+            ws_ping_interval=None,  # Disable ping/pong for tests
+            ws_ping_timeout=None,  # Disable ping timeout
+            timeout_keep_alive=0,  # Don't keep connections alive
         )
         server = uvicorn.Server(config)
         self._server = server
-        # Start server but don't block
-        server.should_exit = False
+
+        # Create and start server task
+        self._server_task = asyncio.create_task(server.serve())
+        # Give the server a moment to start
+        await asyncio.sleep(0.1)
 
     async def stop(self) -> None:
         """Stop FastAPI server."""
         if self._server:
             self._server.should_exit = True
-            await self._server.shutdown()
+
+        if self._server_task:
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._server_task
+            self._server_task = None
             self._server = None
 
 

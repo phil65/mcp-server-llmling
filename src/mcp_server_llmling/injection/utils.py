@@ -1,10 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+import socket
 import time
 
 
 MESSAGE_OK = 200
+
+
+def find_free_port() -> int:
+    """Find a free port by letting OS assign one."""
+    with socket.socket() as s:
+        s.bind(("", 0))  # Bind to any address, random port
+        return s.getsockname()[1]  # Return the port number
 
 
 async def wait_for_injection_server(port: int, timeout: float = 5.0) -> None:
