@@ -7,7 +7,6 @@ import contextlib
 import json
 from typing import TYPE_CHECKING, Any
 
-import logfire
 from mcp.types import JSONRPCMessage, JSONRPCNotification, JSONRPCRequest
 import pytest
 
@@ -21,8 +20,8 @@ if TYPE_CHECKING:
     from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
 
 
-# Initialize logfire to avoid warnings
-logfire.configure()
+INFO = {"name": "test-client", "version": "1.0"}
+PARAMS = {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": INFO}
 
 
 @pytest.mark.asyncio
@@ -31,10 +30,8 @@ async def test_server_lifecycle_handshake_client(client: MCPInProcSession) -> No
     try:
         await client.start()
         await asyncio.sleep(0.5)
-        info = {"name": "test-client", "version": "1.0"}
-        params = {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": info}
         # Initialize connection
-        init_response = await client.send_request("initialize", params)
+        init_response = await client.send_request("initialize", PARAMS)
         assert isinstance(init_response, dict)
         assert "serverInfo" in init_response
         server_info = init_response["serverInfo"]
@@ -61,19 +58,9 @@ async def test_server_lifecycle_test_session(
     running_server: tuple[LLMLingServer, tuple[Any, Any]],
 ) -> None:
     """Test server lifecycle using test session."""
+    req = JSONRPCRequest(jsonrpc="2.0", id=1, method="initialize", params=PARAMS)
     server, (client_read, client_write) = running_server
-    init_request = JSONRPCMessage(
-        JSONRPCRequest(
-            jsonrpc="2.0",
-            id=1,
-            method="initialize",
-            params={
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0"},
-            },
-        )
-    )
+    init_request = JSONRPCMessage(req)
 
     await client_write.send(init_request)
     response = await client_read.receive()
@@ -147,16 +134,7 @@ async def test_server_lifecycle_subprocess() -> None:
         await asyncio.sleep(0.5)  # Give server time to start
 
         # Send initialize request
-        request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0"},
-            },
-        }
+        request = {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": PARAMS}
         process.stdin.write(json.dumps(request).encode() + b"\n")
         await process.stdin.drain()
 
