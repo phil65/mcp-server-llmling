@@ -109,14 +109,9 @@ async def running_server(
 ) -> AsyncIterator[tuple[LLMLingServer, tuple[Any, Any]]]:
     """Create and start test server with memory streams."""
     async with create_client_server_memory_streams() as (client_streams, server_streams):
-        task = asyncio.create_task(
-            server.server.run(
-                server_streams[0],
-                server_streams[1],
-                server.server.create_initialization_options(),
-            )
-        )
-
+        init_opts = server.server.create_initialization_options()
+        coro = server.server.run(server_streams[0], server_streams[1], init_opts)
+        task = asyncio.create_task(coro)
         try:
             yield server, client_streams
         finally:
@@ -127,7 +122,7 @@ async def running_server(
 @pytest.fixture
 async def client() -> MCPInProcSession:
     """Create a test client."""
-    return MCPInProcSession(constants.SERVER_CMD)
+    return MCPInProcSession()
 
 
 @pytest.fixture
@@ -152,7 +147,8 @@ async def config_file(tmp_path: Path, test_config: Config) -> Path:
     """Create temporary config file."""
     config_path = tmp_path / "test_config.yml"
     content = test_config.model_dump(exclude_none=True)
-    config_path.write_text(yaml.dump(content))
+    data = yaml.dump(content)
+    config_path.write_text(data)
     return config_path
 
 

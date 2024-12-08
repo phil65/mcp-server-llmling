@@ -35,12 +35,7 @@ def test_uri_conversion_roundtrip(internal_uri: str, mcp_uri: str) -> None:
 
 @pytest.mark.parametrize(
     "uri",
-    [
-        "invalid://uri",
-        "unknown://test",
-        "://incomplete",
-        "",  # Empty URI
-    ],
+    ["invalid://uri", "unknown://test", "://incomplete", ""],
 )
 def test_invalid_uri_conversion(uri: str) -> None:
     """Test handling of invalid URIs."""

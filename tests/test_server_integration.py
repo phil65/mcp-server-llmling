@@ -5,7 +5,6 @@ import os
 
 import pytest
 
-from mcp_server_llmling import constants
 from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
 
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 @pytest.mark.asyncio
 async def test_resource_to_tool_workflow() -> None:
     """Test loading a resource and using it with a tool."""
-    client = MCPInProcSession(constants.SERVER_CMD)
+    client = MCPInProcSession()
     try:
         # Start server
         await client.start()

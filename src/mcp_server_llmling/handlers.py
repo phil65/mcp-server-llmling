@@ -190,8 +190,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
     @llm_server.server.unsubscribe_resource()
     async def handle_unsubscribe(uri: AnyUrl) -> None:
         """Unsubscribe from resource updates."""
-        uri_str = str(uri)
-        if uri_str in llm_server._subscriptions:
+        if (uri_str := str(uri)) in llm_server._subscriptions:
             llm_server._subscriptions[uri_str].discard(llm_server.current_session)
             if not llm_server._subscriptions[uri_str]:
                 del llm_server._subscriptions[uri_str]

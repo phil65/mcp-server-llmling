@@ -9,10 +9,8 @@ from mcp_server_llmling import LLMLingServer
 
 async def main() -> None:
     # Create minimal config
-    config = Config.model_validate({
-        "global_settings": {},
-        "resources": {"initial": {"type": "text", "content": "Initial resource"}},
-    })
+    res = {"type": "text", "content": "Initial resource"}
+    config = Config.model_validate({"global_settings": {}, "resources": {"initial": res}})
 
     async with RuntimeConfig.from_config(config) as runtime:
         server = LLMLingServer(

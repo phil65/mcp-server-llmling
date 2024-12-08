@@ -10,11 +10,10 @@ from pathlib import Path
 import sys
 from typing import TYPE_CHECKING, Any
 
-from llmling import config_resources
+from llmling import RuntimeConfig, config_resources
 import typer as t
 
 from mcp_server_llmling import __version__, constants
-from mcp_server_llmling.factory import create_runtime_config
 from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.server import LLMLingServer
 
@@ -131,16 +130,17 @@ def start(
         if transport == "sse":
             transport_options = {"host": host, "port": port}
 
-        runtime = create_runtime_config(config_path)
-        server = LLMLingServer(
-            runtime=runtime,
-            transport=transport,  # type: ignore
-            name=server_name,
-            transport_options=transport_options,
-            enable_injection=enable_injection,
-            injection_port=injection_port,
-        )
-        asyncio.run(server.start(raise_exceptions=True))
+        with RuntimeConfig.open_sync(config_path) as runtime:
+            logger.debug("Created runtime with config: %s", runtime._config)
+            server = LLMLingServer(
+                runtime=runtime,
+                transport=transport,  # type: ignore
+                name=server_name,
+                transport_options=transport_options,
+                enable_injection=enable_injection,
+                injection_port=injection_port,
+            )
+            asyncio.run(server.start(raise_exceptions=True))
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
     except Exception:

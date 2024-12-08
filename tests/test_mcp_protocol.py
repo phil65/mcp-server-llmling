@@ -44,10 +44,8 @@ async def test_mcp_tool_operations(configured_client: MCPInProcSession) -> None:
     _example_tool = next(t for t in tools if t["name"] == "example")
 
     # Call tool
-    result = await configured_client.call_tool(
-        "example",
-        {"text": "test", "repeat": 2},
-    )
+    args = {"text": "test", "repeat": 2}
+    result = await configured_client.call_tool("example", args)
     assert result["content"][0]["text"] == "testtest"
 
 
@@ -60,13 +58,8 @@ async def test_mcp_prompt_operations(configured_client: MCPInProcSession) -> Non
     test_prompt = next(p for p in prompts if p["name"] == "test")
 
     # Get prompt
-    result = await configured_client.send_request(
-        "prompts/get",
-        {
-            "name": test_prompt["name"],
-            "arguments": {"test": "value"},
-        },
-    )
+    params = {"name": test_prompt["name"], "arguments": {"test": "value"}}
+    result = await configured_client.send_request("prompts/get", params)
     assert "messages" in result
     assert len(result["messages"]) >= 1
     assert result["messages"][0]["content"]["text"] == "test"
@@ -76,20 +69,16 @@ async def test_mcp_prompt_operations(configured_client: MCPInProcSession) -> Non
 async def test_mcp_error_handling(configured_client: MCPInProcSession) -> None:
     """Test MCP error response format."""
     # Test with invalid tool
-    response = await configured_client.send_request(
-        "tools/call",
-        {"name": "nonexistent"},
-    )
+    params = {"name": "nonexistent"}
+    response = await configured_client.send_request("tools/call", params)
     assert "content" in response
     assert len(response["content"]) == 1
     assert "not found" in response["content"][0]["text"].lower()
 
     # Test with invalid prompt
+    params = {"name": "nonexistent"}
     with pytest.raises(Exception) as exc_info:  # noqa: PT011
-        await configured_client.send_request(
-            "prompts/get",
-            {"name": "nonexistent"},
-        )
+        await configured_client.send_request("prompts/get", params)
     assert "not found" in str(exc_info.value).lower()
 
 
@@ -118,11 +107,8 @@ async def test_mcp_handshake(configured_client: MCPInProcSession) -> None:
 async def test_mcp_streaming(configured_client: MCPInProcSession) -> None:
     """Test MCP streaming operations."""
     # Call tool with progress tracking
-    result = await configured_client.call_tool(
-        "example",
-        {"text": "test", "repeat": 2},  # Will repeat 'test' twice
-        with_progress=True,
-    )
+    args = {"text": "test", "repeat": 2}  # Will repeat 'test' twice
+    result = await configured_client.call_tool("example", args, with_progress=True)
     assert "content" in result
     assert len(result["content"]) == 1
     assert result["content"][0]["text"] == "testtest"

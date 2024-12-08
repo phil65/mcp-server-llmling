@@ -25,7 +25,9 @@ class MCPInProcSession:
     """
 
     def __init__(
-        self, server_command: list[str] | None = None, config_path: str | None = None
+        self,
+        server_command: list[str] | None = None,
+        config_path: str | os.PathLike[str] | None = None,
     ) -> None:
         """Initialize server-client session.
 
@@ -34,20 +36,16 @@ class MCPInProcSession:
                             (default: python -m mcp_server_llmling start)
             config_path: Path to config file to use
         """
-        cmd = constants.SERVER_CMD.copy()
+        cmd = server_command.copy() if server_command else constants.SERVER_CMD.copy()
         if config_path:
-            cmd.append(config_path)
+            cmd.append(str(config_path))
         self.server_command = cmd
         self.process: subprocess.Popen[bytes] | None = None
         self._stderr_task: asyncio.Task[None] | None = None
 
     async def start(self) -> None:
         """Start the server process."""
-        env = {
-            **os.environ,
-            "PYTHONUNBUFFERED": "1",
-            "LOGFIRE_LEVEL": "DEBUG",  # Enable debug logging
-        }
+        env = {**os.environ, "PYTHONUNBUFFERED": "1"}
         logger.debug("Starting server with command: %s", self.server_command)
         self.process = subprocess.Popen(
             self.server_command,
@@ -180,18 +178,15 @@ class MCPInProcSession:
         """Call a tool."""
         if with_progress:
             arguments["_meta"] = {"progressToken": f"progress-{name}"}
-        return await self.send_request(
-            "tools/call", {"name": name, "arguments": arguments}
-        )
+        params = {"name": name, "arguments": arguments}
+        return await self.send_request("tools/call", params)
 
     async def close(self) -> None:
         """Stop the server."""
         assert self._stderr_task
-        if hasattr(self, "_stderr_task"):
-            self._stderr_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._stderr_task
-
+        self._stderr_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await self._stderr_task
         if self.process:
             try:
                 # Just send shutdown notification instead of request
