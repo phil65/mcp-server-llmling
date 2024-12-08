@@ -8,6 +8,7 @@ import json
 from typing import TYPE_CHECKING, Any
 
 import logfire
+from mcp.types import JSONRPCMessage, JSONRPCNotification, JSONRPCRequest
 import pytest
 
 from mcp_server_llmling import constants
@@ -30,16 +31,10 @@ async def test_server_lifecycle_handshake_client(client: MCPInProcSession) -> No
     try:
         await client.start()
         await asyncio.sleep(0.5)
-
+        info = {"name": "test-client", "version": "1.0"}
+        params = {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": info}
         # Initialize connection
-        init_response = await client.send_request(
-            "initialize",
-            {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0"},
-            },
-        )
+        init_response = await client.send_request("initialize", params)
         assert isinstance(init_response, dict)
         assert "serverInfo" in init_response
         server_info = init_response["serverInfo"]
@@ -67,10 +62,6 @@ async def test_server_lifecycle_test_session(
 ) -> None:
     """Test server lifecycle using test session."""
     server, (client_read, client_write) = running_server
-
-    # Create proper MCP message
-    from mcp.types import JSONRPCMessage, JSONRPCRequest
-
     init_request = JSONRPCMessage(
         JSONRPCRequest(
             jsonrpc="2.0",
@@ -92,26 +83,12 @@ async def test_server_lifecycle_test_session(
     assert result["serverInfo"]["name"] == constants.SERVER_NAME
 
     # Send initialized notification
-    from mcp.types import JSONRPCNotification
-
-    notification = JSONRPCMessage(
-        JSONRPCNotification(
-            jsonrpc="2.0",
-            method="notifications/initialized",
-            params={},
-        )
-    )
+    noti = JSONRPCNotification(jsonrpc="2.0", method="notifications/initialized")
+    notification = JSONRPCMessage(noti)
     await client_write.send(notification)
-
+    req = JSONRPCRequest(jsonrpc="2.0", id=2, method="tools/list")
     # Test functionality
-    tools_request = JSONRPCMessage(
-        JSONRPCRequest(
-            jsonrpc="2.0",
-            id=2,
-            method="tools/list",
-            params={},
-        )
-    )
+    tools_request = JSONRPCMessage(req)
     await client_write.send(tools_request)
     tools_response = await client_read.receive()
     assert "tools" in tools_response.root.result
