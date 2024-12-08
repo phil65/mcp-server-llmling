@@ -98,11 +98,8 @@ def quiet_callback(ctx: t.Context, _param: t.CallbackParam, value: bool) -> bool
 
 @cli.command()
 def start(
-    config_path: Path = t.Argument(  # noqa: B008
-        config_resources.TEST_CONFIG,  # ""..."" for required
-        help=CONFIG_HELP,
-        exists=True,
-    ),
+    # ""..."" for required
+    config_path: str = t.Argument(config_resources.TEST_CONFIG, help=CONFIG_HELP),
     transport: str = t.Option(
         "stdio",
         *TRANSPORT_CMDS,
