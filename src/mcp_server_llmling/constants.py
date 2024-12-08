@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 SERVER_NAME = "llmling-server"
 SERVER_CMD = [sys.executable, "-m", "mcp_server_llmling", "start"]
 
-
-LOG_LEVEL_MAP: dict[mcp.LoggingLevel, int] = {
+MCP_TO_LOGGING: dict[mcp.LoggingLevel, int] = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "notice": logging.INFO,
@@ -22,4 +21,14 @@ LOG_LEVEL_MAP: dict[mcp.LoggingLevel, int] = {
     "critical": logging.CRITICAL,
     "alert": logging.CRITICAL,
     "emergency": logging.CRITICAL,
+}
+
+
+# Map Python logging levels to MCP logging levels
+LOGGING_TO_MCP: dict[int, mcp.LoggingLevel] = {
+    logging.DEBUG: "debug",
+    logging.INFO: "info",
+    logging.WARNING: "warning",
+    logging.ERROR: "error",
+    logging.CRITICAL: "critical",
 }

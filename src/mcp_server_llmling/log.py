@@ -6,20 +6,12 @@ import queue
 import sys
 from typing import TYPE_CHECKING, Any
 
+from mcp_server_llmling import constants
+
 
 if TYPE_CHECKING:
-    from mcp import types
+    import mcp
     from mcp.server import Server
-
-
-# Map Python logging levels to MCP logging levels
-LEVEL_MAP: dict[int, types.LoggingLevel] = {
-    logging.DEBUG: "debug",
-    logging.INFO: "info",
-    logging.WARNING: "warning",
-    logging.ERROR: "error",
-    logging.CRITICAL: "critical",
-}
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -41,9 +33,7 @@ class MCPHandler(logging.Handler):
         """Initialize handler with MCP server instance."""
         super().__init__()
         self.server = mcp_server
-        self.queue: queue.Queue[tuple[types.LoggingLevel, Any, str | None]] = (
-            queue.Queue()
-        )
+        self.queue: queue.Queue[tuple[mcp.LoggingLevel, Any, str | None]] = queue.Queue()
 
     def emit(self, record: logging.LogRecord) -> None:
         """Queue log message for async sending."""
@@ -57,7 +47,7 @@ class MCPHandler(logging.Handler):
                 return
 
             # Convert Python logging level to MCP level
-            level = LEVEL_MAP.get(record.levelno, "info")
+            level = constants.LOGGING_TO_MCP.get(record.levelno, "info")
 
             # Format message
             message: Any = self.format(record)

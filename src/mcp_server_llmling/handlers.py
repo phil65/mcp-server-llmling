@@ -37,7 +37,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
     async def handle_set_level(level: mcp.LoggingLevel) -> None:
         """Handle logging level changes."""
         try:
-            python_level = constants.LOG_LEVEL_MAP[level]
+            python_level = constants.MCP_TO_LOGGING[level]
             logger.setLevel(python_level)
             data = f"Log level set to {level}"
             await llm_server.current_session.send_log_message(
