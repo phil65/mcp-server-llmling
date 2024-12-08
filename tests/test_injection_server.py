@@ -5,20 +5,26 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from fastapi.testclient import TestClient
 import httpx
 from llmling import Config, RuntimeConfig
+from llmling.config.models import TextResource
 import pytest
 
 from mcp_server_llmling import LLMLingServer
 from mcp_server_llmling.injection.models import (
     ComponentResponse,
     ConfigUpdateRequest,
+    WebSocketMessage,
 )
-from mcp_server_llmling.injection.utils import wait_for_injection_server
+from mcp_server_llmling.log import get_logger
 
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
+
 
 STATUS_OK = 200
 STATUS_ERROR = 400
@@ -44,34 +50,25 @@ async def runtime(config: Config) -> AsyncGenerator[RuntimeConfig, None]:
 @pytest.fixture
 async def server(runtime: RuntimeConfig) -> AsyncGenerator[LLMLingServer, None]:
     """Create server instance."""
-    server = LLMLingServer(
-        runtime,
-        transport="stdio",
-        enable_injection=True,
-        injection_port=0,  # Random port
-    )
-    yield server
-    await server.shutdown()
+    # Random port
+    server = LLMLingServer(runtime, enable_injection=True, injection_port=0)
+    assert server.injection_server
+    await server.injection_server.start()  # Start server directly, no task needed
+    try:
+        yield server
+    finally:
+        await server.injection_server.stop()
+        await server.shutdown()
 
 
 @pytest.fixture
 async def client(server: LLMLingServer) -> AsyncGenerator[httpx.AsyncClient, None]:
     """Create HTTP client connected to injection server."""
     assert server.injection_server
+    base_url = f"http://localhost:{server.injection_server.port}"
 
-    try:
-        # Start server
-        await server.injection_server.start()
-        port = server.injection_server.port
-
-        # Wait for server to be ready
-        await wait_for_injection_server(port)
-
-        base_url = f"http://localhost:{port}"
-        async with httpx.AsyncClient(base_url=base_url) as client:
-            yield client
-    finally:
-        await server.injection_server.stop()
+    async with httpx.AsyncClient(base_url=base_url) as client:
+        yield client
 
 
 @pytest.mark.asyncio
@@ -90,10 +87,8 @@ async def test_list_components(client: httpx.AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_add_resource(client: httpx.AsyncClient) -> None:
     """Test adding a resource."""
-    response = await client.post(
-        "/resources/new_resource",
-        json={"type": "text", "content": "New content"},
-    )
+    payload = {"type": "text", "content": "New content"}
+    response = await client.post("/resources/new_resource", json=payload)
     assert response.status_code == STATUS_OK
     data = ComponentResponse.model_validate(response.json())
     assert data.status == "success"
@@ -125,7 +120,7 @@ async def test_add_resource(client: httpx.AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_bulk_update(client: httpx.AsyncClient) -> None:
     """Test bulk component updates."""
-    from llmling.config.models import TextResource, ToolConfig
+    from llmling.config.models import ToolConfig
 
     update = ConfigUpdateRequest(
         resources={
@@ -149,61 +144,32 @@ async def test_bulk_update(client: httpx.AsyncClient) -> None:
     assert "bulk_tool" in data["tools"]
 
 
-# @pytest.mark.asyncio
-# async def test_websocket_communication(server: LLMLingServer) -> None:
-#     """Test WebSocket updates."""
-#     from llmling.config.models import TextResource
-#     from websockets.exceptions import ConnectionClosed
+@pytest.mark.asyncio
+async def test_websocket_communication(server: LLMLingServer) -> None:
+    """Test WebSocket updates."""
+    assert server.injection_server
+    test_client = TestClient(server.injection_server.app)
 
-#     assert server.injection_server
-#     await server.injection_server.start()
+    # Test update message
+    with test_client.websocket_connect("/ws") as websocket:
+        # Send update request
+        resource = TextResource(content="WebSocket content")
+        update_request = ConfigUpdateRequest(resources={"ws_resource": resource})
+        data = update_request.model_dump()
+        message = WebSocketMessage(type="update", data=data, request_id="test-1")
 
-#     try:
-#         port = server.injection_server.port
-#         await wait_for_injection_server(port)
+        logger.info("Sending message: %s", message.model_dump())
+        websocket.send_json(message.model_dump())
 
-#         ws_url = f"ws://localhost:{port}/ws"
-#         async with connect(
-#             ws_url,
-#             open_timeout=5,
-#             close_timeout=5,
-#             ping_interval=None,  # Disable ping/pong
-#             ping_timeout=None,  # Disable ping timeout
-#         ) as ws:
-#             # Send update message
-#             update_request = ConfigUpdateRequest(
-#                 resources={"ws_resource": TextResource(content="WebSocket content")}
-#             )
-#             message = WebSocketMessage(
-#                 type="update",
-#                 data=update_request.model_dump(),
-#                 request_id="test-1",
-#             )
-#             await asyncio.wait_for(ws.send(message.model_dump_json()), timeout=5)
+        response = websocket.receive_json()
+        logger.info("Received response: %s", response)
 
-#             # Get response with timeout
-#             response = await asyncio.wait_for(ws.recv(), timeout=5)
-#             response_data = json.loads(response)
-#             assert response_data["type"] == "success"
-#             assert response_data["request_id"] == "test-1"
+        # Print error details if present
+        if response["type"] == "error":
+            logger.error("Error message: %s", response.get("message"))
 
-#             # Query components to verify
-#             message = WebSocketMessage(
-#                 type="query",
-#                 data={},
-#                 request_id="test-2",
-#             )
-#             await asyncio.wait_for(ws.send(message.model_dump_json()), timeout=5)
-
-#             response = await asyncio.wait_for(ws.recv(), timeout=5)
-#             response_data = json.loads(response)
-#             assert "ws_resource" in response_data["data"]["resources"]
-
-#     except (TimeoutError, ConnectionClosed) as e:
-#         msg = f"WebSocket test failed: {e}"
-#         raise RuntimeError(msg) from e
-#     finally:
-#         await server.injection_server.stop()
+        assert response["type"] == "success"
+        assert response["request_id"] == "test-1"
 
 
 @pytest.mark.asyncio
@@ -211,10 +177,8 @@ async def test_concurrent_updates(client: httpx.AsyncClient) -> None:
     """Test concurrent updates."""
 
     async def add_resource(name: str) -> httpx.Response:
-        return await client.post(
-            f"/resources/{name}",
-            json={"type": "text", "content": f"Content {name}"},
-        )
+        data = {"type": "text", "content": f"Content {name}"}
+        return await client.post(f"/resources/{name}", json=data)
 
     # Send multiple concurrent requests
     tasks = [add_resource(f"concurrent_{i}") for i in range(5)]

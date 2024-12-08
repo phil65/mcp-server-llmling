@@ -375,52 +375,81 @@ def setup_routes(server: ConfigInjectionServer) -> None:
 
         return BulkUpdateResponse(results=responses, summary=summary)
 
-    # WebSocket endpoint
-    @server.app.websocket(
-        "/ws",
-        name="component_updates",
-        dependencies=None,
-    )
+    @server.app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket) -> None:
         """Handle WebSocket connections."""
         await websocket.accept()
+        logger.debug("WebSocket connection accepted")
+
         try:
-            while True:
-                raw_data = await websocket.receive_json()
-                try:
-                    message = WebSocketMessage.model_validate(raw_data)
-                    match message.type:
-                        case "update":
-                            if isinstance(message.data, dict):
-                                req = ConfigUpdateRequest.model_validate(message.data)
-                                response = await bulk_update(req)
-                                data = WebSocketResponse(
-                                    type="success",
-                                    data=response.results,
-                                    request_id=message.request_id,
-                                    message="Components updated successfully",
-                                ).model_dump()
-                                await websocket.send_json(data)
-                        case "query":
-                            # Handle component queries
-                            components = await list_components()
-                            data = WebSocketResponse(
-                                type="success",
-                                data=components,
-                                request_id=message.request_id,
-                            ).model_dump()
-                            await websocket.send_json(data)
-                        case "error":
-                            logger.error("Client error: %s", message.data)
-                except Exception:
-                    error_msg = "Operation failed"
-                    logger.exception(error_msg)
+            # First message handling
+            raw_data = await websocket.receive_json()
+            logger.debug("Received WebSocket data: %s", raw_data)
+
+            message = WebSocketMessage.model_validate(raw_data)
+            logger.debug("Validated message: %s", message)
+
+            match message.type:
+                case "update":
+                    try:
+                        logger.debug("Processing update request")
+                        # Don't validate data again, it's already a dict
+                        update_result = await bulk_update(
+                            ConfigUpdateRequest.model_validate(message.data)
+                        )
+                        response = WebSocketResponse(
+                            type="success",
+                            data=update_result.results,
+                            request_id=message.request_id,
+                            message="Components updated successfully",
+                        )
+                        logger.debug("Update successful")
+                    except Exception as e:
+                        logger.exception("Update processing failed")
+                        response = WebSocketResponse(
+                            type="error",
+                            data={},
+                            message=str(e),
+                            request_id=message.request_id,
+                        )
+
+                case "query":
+                    logger.debug("Processing query request")
+                    components = {
+                        "resources": server.llm_server.runtime.list_resource_names(),
+                        "tools": server.llm_server.runtime.list_tool_names(),
+                        "prompts": server.llm_server.runtime.list_prompt_names(),
+                    }
+                    response = WebSocketResponse(
+                        type="success",
+                        data=components,
+                        request_id=message.request_id,
+                    )
+                    logger.debug("Query successful")
+
+                case _:
+                    logger.error("Unknown message type: %s", message.type)
                     response = WebSocketResponse(
                         type="error",
                         data={},
-                        message=error_msg,
-                        request_id=getattr(message, "request_id", None),
-                    ).model_dump()
-                    await websocket.send_json(response)
+                        message=f"Unknown message type: {message.type}",
+                        request_id=message.request_id,
+                    )
+
+            logger.debug("Sending response: %s", response.model_dump())
+            await websocket.send_json(response.model_dump())
+
         except WebSocketDisconnect:
             logger.debug("WebSocket client disconnected")
+        except Exception as e:
+            logger.exception("WebSocket operation failed")
+            try:
+                error_response = WebSocketResponse(
+                    type="error",
+                    data={},
+                    message=str(e),
+                    request_id=getattr(message, "request_id", None),
+                ).model_dump()
+                await websocket.send_json(error_response)
+            except Exception:
+                logger.exception("Failed to send error response")
