@@ -15,9 +15,14 @@ from llmling.config.models import (
     ToolConfig,
 )
 from py2openai import OpenAIFunctionTool  # noqa: TC002
-from pydantic import BaseModel
-from pydantic.fields import Field
 
+from mcp_server_llmling.injection.models import (
+    BulkUpdateResponse,
+    ComponentResponse,
+    ConfigUpdateRequest,
+    WebSocketMessage,
+    WebSocketResponse,
+)
 from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.transports.stdio import StdioServer
 
@@ -34,113 +39,66 @@ logger = get_logger(__name__)
 ComponentType = Literal["resource", "tool", "prompt"]
 
 
+DESCRIPTION = """
+API for hot-injecting configuration into running LLMling server.
+
+## Features
+* Inject new resources
+* Update existing tools
+* Real-time configuration updates
+* WebSocket support for live updates
+
+## WebSocket Interface
+Connect to `/ws` for real-time updates. The WebSocket interface supports:
+
+### Message Types
+* update: Update components in real-time
+* query: Query current component status
+* error: Error reporting from client
+
+### Message Format
+```json
+{
+    "type": "update|query|error",
+    "data": {
+        "resources": {...},
+        "tools": {...}
+    },
+    "request_id": "optional-correlation-id"
+}
+```
+
+### Response Format
+```json
+{
+    "type": "success|error|update",
+    "data": {...},
+    "request_id": "correlation-id",
+    "message": "optional status message"
+}
+```
+"""
+
+TAGS = [
+    {
+        "name": "components",
+        "description": "Server component operations (resources/tools/prompts)",
+    },
+    {"name": "config", "description": "Configuration management endpoints"},
+]
+
+
 def create_app() -> FastAPI:
     """Create FastAPI application for config injection."""
     return FastAPI(
         title="LLMling Config Injection API",
-        description="""
-        API for hot-injecting configuration into running LLMling server.
-
-        ## Features
-        * Inject new resources
-        * Update existing tools
-        * Real-time configuration updates
-        * WebSocket support for live updates
-
-        ## WebSocket Interface
-        Connect to `/ws` for real-time updates. The WebSocket interface supports:
-
-        ### Message Types
-        * update: Update components in real-time
-        * query: Query current component status
-        * error: Error reporting from client
-
-        ### Message Format
-        ```json
-        {
-            "type": "update|query|error",
-            "data": {
-                "resources": {...},
-                "tools": {...}
-            },
-            "request_id": "optional-correlation-id"
-        }
-        ```
-
-        ### Response Format
-        ```json
-        {
-            "type": "success|error|update",
-            "data": {...},
-            "request_id": "correlation-id",
-            "message": "optional status message"
-        }
-        ```
-        """,
+        description=DESCRIPTION,
         version="1.0.0",
-        openapi_tags=[
-            {
-                "name": "components",
-                "description": "Server component operations (resources/tools/prompts)",
-            },
-            {"name": "config", "description": "Configuration management endpoints"},
-        ],
+        openapi_tags=TAGS,
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
     )
-
-
-class ComponentResponse(BaseModel):
-    """Response model for component operations."""
-
-    status: Literal["success", "error"]
-    message: str
-    component_type: ComponentType
-    name: str
-
-
-class ConfigUpdate(BaseModel):
-    """Model for config updates."""
-
-    resources: dict[str, Resource] | None = Field(
-        default=None, description="Resource updates"
-    )
-    tools: dict[str, ToolConfig] | None = Field(default=None, description="Tool updates")
-
-
-class BulkUpdateResponse(BaseModel):
-    """Response model for bulk updates."""
-
-    results: list[ComponentResponse]
-    summary: dict[str, int] = Field(default_factory=lambda: {"success": 0, "error": 0})
-
-
-class ConfigUpdateRequest(BaseModel):
-    """Request model for config updates."""
-
-    resources: dict[str, Resource] | None = None
-    tools: dict[str, ToolConfig] | None = None
-    replace_existing: bool = Field(
-        default=True, description="Whether to replace existing components"
-    )
-
-
-class WebSocketMessage(BaseModel):
-    """Message format for WebSocket communication."""
-
-    type: Literal["update", "query", "error"]
-    data: ConfigUpdateRequest | dict[str, Any]
-    request_id: str | None = None
-
-
-class WebSocketResponse(BaseModel):
-    """Response format for WebSocket communication."""
-
-    type: Literal["success", "error", "update"]
-    data: ComponentResponse | list[ComponentResponse] | dict[str, Any]
-    request_id: str | None = None
-    message: str | None = None
 
 
 class ConfigInjectionServer:
@@ -603,7 +561,10 @@ class ConfigInjectionServer:
         import uvicorn
 
         config = uvicorn.Config(
-            self.app, host=self.host, port=self.port, log_level="info"
+            self.app,
+            host=self.host,
+            port=self.port,
+            log_level="info",
         )
         self._server = uvicorn.Server(config)
         # Run in same event loop
