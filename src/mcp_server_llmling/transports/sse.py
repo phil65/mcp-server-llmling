@@ -79,9 +79,8 @@ class SSEServer(TransportBase):
 
         async def handle_sse(scope: dict, receive: Any, send: Any) -> None:
             """Handle SSE connection endpoint."""
-            logger.info(
-                "New SSE connection from %s", scope.get("client", ("unknown", 0))[0]
-            )
+            client = scope.get("client", ("unknown", 0))[0]
+            logger.info("New SSE connection from %s", client)
 
             async with (
                 sse.connect_sse(scope, receive, send) as streams,
@@ -115,13 +114,9 @@ class SSEServer(TransportBase):
                     raise
 
         # Create Starlette app with routes
-        app = Starlette(
-            debug=raise_exceptions,
-            routes=[
-                Route("/sse", endpoint=handle_sse),
-                Route("/messages", endpoint=handle_messages, methods=["POST"]),
-            ],
-        )
+        sse_route = Route("/sse", endpoint=handle_sse)
+        msg_route = Route("/messages", endpoint=handle_messages, methods=["POST"])
+        app = Starlette(debug=raise_exceptions, routes=[sse_route, msg_route])
 
         # Add CORS middleware
         app.add_middleware(
