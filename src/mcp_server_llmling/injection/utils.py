@@ -15,7 +15,7 @@ def find_free_port() -> int:
         return s.getsockname()[1]  # Return the port number
 
 
-async def wait_for_injection_server(port: int, timeout: float = 5.0) -> None:
+async def wait_for_injection_server(port: int, timeout: float = 2.0) -> None:
     """Wait for injection server to be ready."""
     import httpx
 
@@ -23,11 +23,11 @@ async def wait_for_injection_server(port: int, timeout: float = 5.0) -> None:
     while True:
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(f"http://localhost:{port}/docs")
+                response = await client.get(f"http://localhost:{port}/docs", timeout=0.5)
                 if response.status_code == MESSAGE_OK:
                     return
-        except Exception:  # noqa: BLE001
+        except Exception as e:
             if time.monotonic() - start > timeout:
-                msg = "Injection server did not start"
-                raise TimeoutError(msg)  # noqa: B904
+                msg = f"Injection server did not start: {e}"
+                raise TimeoutError(msg) from e
             await asyncio.sleep(0.1)
