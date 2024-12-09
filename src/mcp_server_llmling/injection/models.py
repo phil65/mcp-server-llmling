@@ -117,3 +117,53 @@ class WebSocketResponse(BaseSchema):
 
     message: str | None = None
     """Optional response message."""
+
+
+class PackageInstallRequest(BaseSchema):
+    """Request model for package installation."""
+
+    package: str
+    """Package specification with optional version constraints."""
+
+
+class PackageInstallResponse(BaseSchema):
+    """Response model for package installation."""
+
+    status: StatusType
+    """Operation status."""
+
+    message: str
+    """Installation result or error message."""
+
+    package: str
+    """Package that was attempted to be installed."""
+
+
+class CodeToolRequest(BaseSchema):
+    """Request model for registering a tool from code."""
+
+    name: str
+    """Name for the new tool."""
+
+    code: str
+    """Python code defining the tool function."""
+
+    description: str | None = None
+    """Optional tool description."""
+
+
+class ImportToolRequest(BaseSchema):
+    """Request model for registering a tool from import path."""
+
+    import_path: str
+    """Import path to the function (e.g. 'mypackage.module.function')."""
+
+    description: str | None = None
+    """Optional tool description."""
+
+
+class ComponentListResponse(ComponentResponse):
+    """Response model for component list operations."""
+
+    components: dict[str, list[str]] = Field(default_factory=dict)
+    """Dictionary of components grouped by type."""

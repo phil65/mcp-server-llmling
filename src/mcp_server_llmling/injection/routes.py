@@ -18,9 +18,13 @@ from py2openai import OpenAIFunctionTool  # noqa: TC002
 
 from mcp_server_llmling.injection.models import (
     BulkUpdateResponse,
+    CodeToolRequest,
     ComponentResponse,
     ConfigUpdateRequest,
     ErrorResponse,
+    ImportToolRequest,
+    PackageInstallRequest,
+    PackageInstallResponse,
     SuccessResponse,
     WebSocketMessage,
     WebSocketResponse,
@@ -453,3 +457,103 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                 await websocket.send_json(error_response)
             except Exception:
                 logger.exception("Failed to send error response")
+
+    @server.app.post(
+        "/dependencies/install",
+        response_model=PackageInstallResponse,
+        tags=["dependencies"],
+        summary="Install package dependency",
+        description="""
+        Install a Python package using pip. The package spec can include version
+        constraints (e.g. "requests>=2.28.0").
+        """,
+        responses={
+            200: {"description": "Package installed successfully"},
+            400: {"description": "Invalid package specification"},
+            500: {"description": "Installation failed"},
+        },
+    )
+    async def install_dependency(
+        request: PackageInstallRequest,
+    ) -> PackageInstallResponse:
+        """Install a Python package dependency."""
+        try:
+            msg = await server.llm_server.runtime.install_package(request.package)
+            return PackageInstallResponse(
+                status="success",
+                message=msg,
+                package=request.package,
+            )
+        except Exception as e:
+            logger.exception("Package installation failed")
+            return PackageInstallResponse(
+                status="error",
+                message=f"Installation failed: {e}",
+                package=request.package,
+            )
+
+    @server.app.post(
+        "/tools/code/{name}",
+        response_model=ComponentResponse,
+        tags=["components"],
+        summary="Register tool from code",
+        description="""
+        Register a new tool from Python code. The code should define a function
+        that will be used as the tool implementation.
+        """,
+        responses={
+            200: {"description": "Tool registered successfully"},
+            400: {"description": "Invalid code or registration failed"},
+        },
+    )
+    async def register_code_tool(request: CodeToolRequest) -> ComponentResponse:
+        """Register a new tool from Python code."""
+        try:
+            msg = await server.llm_server.runtime.register_code_tool(
+                name=request.name,
+                code=request.code,
+                description=request.description,
+            )
+            return SuccessResponse(
+                message=msg,
+                component_type="tool",
+                name=request.name,
+            )
+        except Exception as e:  # noqa: BLE001
+            return ErrorResponse(
+                message=f"Failed to register tool: {e}",
+                component_type="tool",
+                name=request.name,
+            )
+
+    @server.app.post(
+        "/tools/import/{name}",
+        response_model=ComponentResponse,
+        tags=["components"],
+        summary="Register tool from import path",
+        description="""
+        Register a new tool by importing a function.
+
+        The import path should be in the format 'module.submodule.function'.
+        For example: 'webbrowser.open' or 'mypackage.tools.analyze'
+        """,
+        responses={
+            200: {"description": "Tool successfully registered"},
+            400: {"description": "Invalid import path or registration failed"},
+        },
+    )
+    async def register_imported_tool(
+        name: str, request: ImportToolRequest
+    ) -> ComponentResponse:
+        """Register a tool from an import path."""
+        try:
+            await server.llm_server.runtime.register_tool(
+                name=name,
+                function=request.import_path,
+                description=request.description,
+            )
+            msg = f"Tool {name} registered from {request.import_path}"
+            return SuccessResponse(message=msg, component_type="tool", name=name)
+        except Exception as e:
+            logger.exception("Failed to register imported tool")
+            raise HTTPException(status_code=400, detail=str(e)) from e
