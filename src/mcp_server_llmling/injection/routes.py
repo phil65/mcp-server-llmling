@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 from llmling.config.models import (
-    BaseResource,
     CallableResource,
     CLIResource,
     ImageResource,
     PathResource,
+    Resource,
     SourceResource,
     TextResource,
     ToolConfig,
@@ -162,7 +162,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
             400: {"description": "Invalid resource configuration"},
         },
     )
-    async def add_resource(name: str, resource: BaseResource) -> ComponentResponse:
+    async def add_resource(name: str, resource: Resource) -> ComponentResponse:
         """Add or update a resource."""
         try:
             server.llm_server.runtime.register_resource(name, resource, replace=True)
@@ -193,7 +193,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
             }
         },
     )
-    async def list_resources() -> dict[str, BaseResource]:
+    async def list_resources() -> dict[str, Resource]:
         """List all resources with their configuration."""
         return {
             name: server.llm_server.runtime._resource_registry[name]
