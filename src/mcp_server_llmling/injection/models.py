@@ -1,82 +1,119 @@
+"""Models for component configuration and API communication."""
+
 from __future__ import annotations
 
+from collections.abc import Sequence  # noqa: F401
 from typing import Any, Literal
 
 from llmling.config.models import BaseResource, ToolConfig  # noqa: TC002
-from pydantic import BaseModel
-from pydantic.fields import Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from mcp_server_llmling.log import get_logger
 
 
-# from mcp_server_llmling.ui import create_ui_app
-
-
 logger = get_logger(__name__)
 
-
 ComponentType = Literal["resource", "tool", "prompt"]
+StatusType = Literal["success", "error"]
 
 
-class ComponentResponse(BaseModel):
+class BaseSchema(BaseModel):
+    """Base schema with shared configuration."""
+
+    model_config = ConfigDict(use_enum_values=True, use_attribute_docstrings=True)
+
+
+class BaseMessage(BaseSchema):
+    """Base class for all message types."""
+
+    status: StatusType
+    """Status of the operation (success/error)."""
+
+    message: str
+    """Descriptive message about the operation result."""
+
+
+class ComponentResponse(BaseMessage):
     """Response model for component operations."""
 
-    status: Literal["success", "error"]
-    message: str
     component_type: ComponentType
+    """Type of the component (resource/tool/prompt)."""
+
     name: str
+    """Name of the component."""
 
 
 class SuccessResponse(ComponentResponse):
     """Response model for successful component operations."""
 
     status: Literal["success"] = Field(default="success", init=False)
+    """Operation status (always 'success')."""
 
 
 class ErrorResponse(ComponentResponse):
     """Response model for failed component operations."""
 
     status: Literal["error"] = Field(default="error", init=False)
+    """Operation status (always 'error')."""
 
 
-class ConfigUpdate(BaseModel):
+class ConfigUpdate(BaseSchema):
     """Model for config updates."""
 
-    resources: dict[str, BaseResource] | None = Field(
-        default=None, description="Resource updates"
-    )
-    tools: dict[str, ToolConfig] | None = Field(default=None, description="Tool updates")
+    resources: dict[str, BaseResource] | None = None
+    """Dictionary of resource updates."""
+
+    tools: dict[str, ToolConfig] | None = None
+    """Dictionary of tool updates."""
 
 
-class BulkUpdateResponse(BaseModel):
+class BulkUpdateResponse(BaseSchema):
     """Response model for bulk updates."""
 
     results: list[ComponentResponse]
+    """List of individual component update results."""
+
     summary: dict[str, int] = Field(default_factory=lambda: {"success": 0, "error": 0})
+    """Summary of update results by status."""
 
 
-class ConfigUpdateRequest(BaseModel):
+class ConfigUpdateRequest(BaseSchema):
     """Request model for config updates."""
 
     resources: dict[str, BaseResource] | None = None
+    """Dictionary of resources to update."""
+
     tools: dict[str, ToolConfig] | None = None
-    replace_existing: bool = Field(
-        default=True, description="Whether to replace existing components"
-    )
+    """Dictionary of tools to update."""
+
+    replace_existing: bool = True
+    """Whether to replace existing components."""
 
 
-class WebSocketMessage(BaseModel):
+class WebSocketMessage(BaseSchema):
     """Message format for WebSocket communication."""
 
     type: Literal["update", "query", "error"]
+    """Type of the WebSocket message."""
+
     data: ConfigUpdateRequest | dict[str, Any]
+    """Message payload data."""
+
     request_id: str | None = None
+    """Optional request identifier for correlation."""
 
 
-class WebSocketResponse(BaseModel):
+class WebSocketResponse(BaseSchema):
     """Response format for WebSocket communication."""
 
     type: Literal["success", "error", "update"]
+    """Type of the WebSocket response."""
+
     data: ComponentResponse | list[ComponentResponse] | dict[str, Any]
+    """Response payload data."""
+
     request_id: str | None = None
+    """Correlated request identifier."""
+
     message: str | None = None
+    """Optional response message."""
