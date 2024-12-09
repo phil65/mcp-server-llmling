@@ -46,6 +46,9 @@ dependencies = [
 [project.scripts]
 mcp-server-llmling = "mcp_server_llmling.__main__:cli"
 
+[project.optional-dependencies]
+gui = ["nicegui"]
+
 [tool.uv]
 default-groups = ["dev", "lint", "docs"]
 
