@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from llmling.config.models import Resource
+from llmling.config.models import BaseResource
 from llmling.core.events import Event, EventType, RegistryEvents
 from llmling.prompts.models import BasePrompt
 from llmling.tools.base import LLMCallableTool
@@ -24,14 +24,14 @@ class ResourceObserver:
 
     def __init__(self, server: LLMLingServer) -> None:
         self.server = server
-        self.events = RegistryEvents[str, Resource]()
+        self.events = RegistryEvents[str, BaseResource]()
         self.events.on_item_added = self._handle_resource_added
         self.events.on_item_modified = self._handle_resource_modified
         self.events.on_item_removed = self._handle_resource_removed
         self.events.on_list_changed = self._handle_resource_list_changed
         self.events.on_reset = self._handle_registry_reset
 
-    def _handle_resource_added(self, key: str, resource: Resource) -> None:
+    def _handle_resource_added(self, key: str, resource: BaseResource) -> None:
         """Handle resource addition."""
         event = Event(
             type=EventType.RESOURCE_ADDED,
@@ -42,7 +42,7 @@ class ResourceObserver:
         self.server._create_task(self.server.runtime.emit_event(event))
         self.server._create_task(self.server.notify_resource_list_changed())
 
-    def _handle_resource_modified(self, key: str, resource: Resource) -> None:
+    def _handle_resource_modified(self, key: str, resource: BaseResource) -> None:
         """Handle resource modification."""
         event = Event(
             type=EventType.RESOURCE_MODIFIED,
@@ -55,7 +55,7 @@ class ResourceObserver:
         uri = loader.create_uri(name=key)
         self.server._create_task(self.server.notify_resource_change(uri))
 
-    def _handle_resource_removed(self, key: str, resource: Resource) -> None:
+    def _handle_resource_removed(self, key: str, resource: BaseResource) -> None:
         """Handle resource removal."""
         event = Event(
             type=EventType.RESOURCE_REMOVED,

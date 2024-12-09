@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from llmling.config.models import Resource, ToolConfig  # noqa: TC002
+from llmling.config.models import BaseResource, ToolConfig  # noqa: TC002
 from pydantic import BaseModel
 from pydantic.fields import Field
 
@@ -42,7 +42,7 @@ class ErrorResponse(ComponentResponse):
 class ConfigUpdate(BaseModel):
     """Model for config updates."""
 
-    resources: dict[str, Resource] | None = Field(
+    resources: dict[str, BaseResource] | None = Field(
         default=None, description="Resource updates"
     )
     tools: dict[str, ToolConfig] | None = Field(default=None, description="Tool updates")
@@ -58,7 +58,7 @@ class BulkUpdateResponse(BaseModel):
 class ConfigUpdateRequest(BaseModel):
     """Request model for config updates."""
 
-    resources: dict[str, Resource] | None = None
+    resources: dict[str, BaseResource] | None = None
     tools: dict[str, ToolConfig] | None = None
     replace_existing: bool = Field(
         default=True, description="Whether to replace existing components"
