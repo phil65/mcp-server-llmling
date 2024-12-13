@@ -57,23 +57,7 @@ def runtime_config(base_config: Config) -> RuntimeConfig:
     prompt_registry = PromptRegistry()
     tool_registry = ToolRegistry()
 
-    # Register default loaders
-    from llmling.resources import (
-        CallableResourceLoader,
-        CLIResourceLoader,
-        ImageResourceLoader,
-        PathResourceLoader,
-        SourceResourceLoader,
-        TextResourceLoader,
-    )
-
-    loader_registry["text"] = TextResourceLoader
-    loader_registry["path"] = PathResourceLoader
-    loader_registry["cli"] = CLIResourceLoader
-    loader_registry["source"] = SourceResourceLoader
-    loader_registry["callable"] = CallableResourceLoader
-    loader_registry["image"] = ImageResourceLoader
-
+    loader_registry.register_default_loaders()
     # Register test processors
     processor_registry.register("multiply", multiply)
     processor_registry.register("uppercase", uppercase_text)

@@ -7,7 +7,6 @@ from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 from llmling.config.models import (
     CallableResource,
     CLIResource,
-    ImageResource,
     PathResource,
     Resource,
     SourceResource,
@@ -90,8 +89,6 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                             validated = SourceResource.model_validate(resource)
                         case "callable":
                             validated = CallableResource.model_validate(resource)
-                        case "image":
-                            validated = ImageResource.model_validate(resource)
                         case _:
                             msg = f"Unknown resource type: {resource_type}"
                             raise ValueError(msg)  # noqa: TRY301
