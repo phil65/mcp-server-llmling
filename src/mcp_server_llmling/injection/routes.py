@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 from llmling.config.models import (
+    BaseResource,
     CallableResource,
     CLIResource,
     PathResource,
@@ -78,6 +79,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                     # Validate based on resource type
                     resource_type = resource.get("type")
                     logger.debug("Processing resource %s of type %s", name, resource_type)
+                    validated: BaseResource
                     match resource_type:
                         case "path":
                             validated = PathResource.model_validate(resource)

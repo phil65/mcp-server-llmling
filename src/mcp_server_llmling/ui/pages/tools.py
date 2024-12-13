@@ -39,7 +39,7 @@ class ToolsPage:
 
             with ui.card().classes("w-full mt-4"):
                 ui.label("Import Paths").classes("text-lg mb-2")
-                current_paths = [
+                current_paths: list[str] = [
                     tool.import_path
                     for tool in self.server.llm_server.runtime._tool_registry.values()
                 ]

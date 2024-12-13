@@ -18,16 +18,15 @@ install_cli = t.Typer(help="Install MCP server in different editors.", name="ins
 
 def get_claude_config_path() -> Path | None:
     """Get the Claude config directory based on platform."""
-    if sys.platform == "win32":
-        path = Path(Path.home(), "AppData", "Roaming", "Claude")
-    elif sys.platform == "darwin":
-        path = Path(Path.home(), "Library", "Application Support", "Claude")
-    else:
-        return None
-
-    if path.exists():
-        return path
-    return None
+    match sys.platform:
+        case "win32":
+            path = Path(Path.home(), "AppData", "Roaming", "Claude")
+            return path if path.exists() else None
+        case "darwin":
+            path = Path(Path.home(), "Library", "Application Support", "Claude")
+            return path if path.exists() else None
+        case _:
+            return None
 
 
 @install_cli.command()

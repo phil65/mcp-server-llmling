@@ -143,6 +143,7 @@ def wrap_for_zed(prompt: BasePrompt) -> BasePrompt:
         return prompt
 
     # Create appropriate wrapper based on prompt type
+    wrapper: BasePrompt
     match prompt:
         case StaticPrompt():
             wrapper = ZedStaticPrompt(
