@@ -47,6 +47,7 @@ class LLMLingServer:
         transport_options: dict[str, Any] | None = None,
         enable_injection: bool = False,
         injection_port: int = 8765,
+        zed_mode: bool = False,
     ) -> None:
         """Initialize server with runtime configuration.
 
@@ -57,9 +58,11 @@ class LLMLingServer:
             transport_options: Additional options for transport
             enable_injection: Whether to enable config injection
             injection_port: Port for injection server
+            zed_mode: Enable Zed editor compatibility mode
         """
         self.name = name
         self.runtime = runtime
+        self.zed_mode = zed_mode
         self._subscriptions: defaultdict[str, set[mcp.ServerSession]] = defaultdict(set)
         self._tasks: set[asyncio.Task[Any]] = set()
 
