@@ -105,9 +105,9 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                 logger.debug("Processing tools: %s", tools)
                 for name, tool in tools.items():
                     logger.debug("Processing tool: %s", name)
-                    validated = ToolConfig.model_validate(tool)
+                    tool = ToolConfig.model_validate(tool)
                     server.llm_server.runtime._tool_registry.register(
-                        name, validated, replace=True
+                        name, tool, replace=True
                     )
                     logger.debug("Tool %s registered", name)
             msg = "Config injected successfully"

@@ -194,7 +194,8 @@ def inject(
 def run() -> None:
     """Entry point for the CLI."""
     if os.name == "nt":  # Windows
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        policy = asyncio.WindowsSelectorEventLoopPolicy()  # type: ignore[attr-defined]
+        asyncio.set_event_loop_policy(policy)
     cli()
 
 

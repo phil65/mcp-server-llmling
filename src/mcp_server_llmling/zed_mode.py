@@ -177,7 +177,7 @@ def wrap_for_zed(prompt: BasePrompt) -> BasePrompt:
             msg = f"Unsupported prompt type: {type(prompt)}"
             raise ValueError(msg)
 
-    wrapper.original_prompt = prompt
+    wrapper.original_prompt = prompt  # type: ignore[attr-defined]
     return wrapper
 
 
