@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from llmling.core.log import get_logger
 from llmling.prompts.models import (
     BasePrompt,
     DynamicPrompt,
@@ -16,6 +17,10 @@ from llmling.prompts.models import (
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from llmling import RuntimeConfig
+
+logger = get_logger(__name__)
 
 
 class ZedPromptMixin:
@@ -173,3 +178,26 @@ def wrap_for_zed(prompt: BasePrompt) -> BasePrompt:
 
     wrapper.original_prompt = prompt
     return wrapper
+
+
+def prepare_runtime_for_zed(runtime: RuntimeConfig) -> None:
+    """Prepare runtime configuration for Zed compatibility.
+
+    Wraps all prompts that need wrapping with Zed-compatible versions.
+
+    Args:
+        runtime: Runtime configuration to modify
+    """
+    logger.info("Enabling Zed compatibility mode")
+    registry = runtime._prompt_registry
+
+    # Wrap all prompts that need wrapping
+    for name, prompt in list(registry.items()):
+        try:
+            wrapped = wrap_for_zed(prompt)
+            if wrapped is not prompt:  # Only update if actually wrapped
+                logger.debug("Wrapped prompt %r for Zed compatibility", name)
+                registry[name] = wrapped
+        except Exception:
+            # Log but don't fail if a prompt can't be wrapped
+            logger.exception("Failed to wrap prompt %r:", name)

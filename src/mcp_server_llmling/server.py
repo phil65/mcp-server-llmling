@@ -62,7 +62,11 @@ class LLMLingServer:
         """
         self.name = name
         self.runtime = runtime
-        self.zed_mode = zed_mode
+        # Handle Zed mode if enabled
+        if zed_mode:
+            from mcp_server_llmling.zed_mode import prepare_runtime_for_zed
+
+            prepare_runtime_for_zed(runtime)
         self._subscriptions: defaultdict[str, set[mcp.ServerSession]] = defaultdict(set)
         self._tasks: set[asyncio.Task[Any]] = set()
 
