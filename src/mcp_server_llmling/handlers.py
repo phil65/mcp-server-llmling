@@ -113,6 +113,27 @@ def register_handlers(llm_server: LLMLingServer) -> None:
 
         return resources
 
+    @llm_server.server.list_resource_templates()
+    async def handle_list_resource_templates() -> list[types.ResourceTemplate]:
+        """Handle resource template listing request."""
+        templates: list[types.ResourceTemplate] = []
+        for resource in llm_server.runtime.get_resources():
+            if not resource.is_templated():
+                continue
+
+            # Get the loader for proper URI template creation
+            loader = llm_server.runtime.get_resource_loader(resource)
+            uri_template = loader.get_uri_template()
+            templ = types.ResourceTemplate(
+                uriTemplate=uri_template,
+                name=resource.uri or "",  # this is fishy, we need display name?
+                description=resource.description,
+                mimeType=resource.mime_type,
+            )
+            templates.append(templ)
+
+        return templates
+
     @llm_server.server.read_resource()
     async def handle_read_resource(uri: AnyUrl) -> str | bytes:
         """Handle direct resource content requests."""
