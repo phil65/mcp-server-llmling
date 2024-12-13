@@ -46,7 +46,7 @@ def create_ui_app(server: ConfigInjectionServer) -> None:
         header.render()
 
         resource_list = ResourceList(server)
-        resource_list.render()
+        resource_list.render()  # type: ignore
 
     @ui.page("/tools")  # Will be /ui/tools
     def tools() -> None:
@@ -55,4 +55,4 @@ def create_ui_app(server: ConfigInjectionServer) -> None:
         header.render()
 
         tool_list = ToolList(server)
-        tool_list.render()
+        tool_list.render()  # type: ignore

@@ -35,7 +35,7 @@ class ToolsPage:
                 ui.label("Tools").classes("text-2xl")
 
             # Call the instance method correctly
-            self.tool_list.render()
+            self.tool_list.render()  # type: ignore
 
             with ui.card().classes("w-full mt-4"):
                 ui.label("Import Paths").classes("text-lg mb-2")
