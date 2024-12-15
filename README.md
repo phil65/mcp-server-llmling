@@ -39,7 +39,7 @@
 
 mcp-server-llmling is a server for the Machine Chat Protocol (MCP) that provides a YAML-based configuration system for LLM applications.
 
-LLMLing, the backend,  provides a YAML-based configuration system for LLM applications.
+[LLMLing](https://phil65.github.io/LLMling/), the backend,  provides a YAML-based configuration system for LLM applications.
 It allows to set up custom MCP servers serving content defined in YAML files.
 
 - **Static Declaration**: Define your LLM's environment in YAML - no code required
@@ -244,7 +244,7 @@ prompts:
   # Prompt definitions...
 ```
 
-## Interaction Protocol
+## MCP Protocol
 
 The server implements the MCP protocol which supports:
 
