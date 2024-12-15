@@ -114,6 +114,11 @@ def start(
     log_level: LogLevel = t.Option(LogLevel.INFO, "-l", "--log-level"),  # noqa: B008
     timeout: float = t.Option(30.0, help=TIMEOUT_HELP),
     enable_injection: bool = t.Option(False, help="Enable config injection server"),
+    zed_mode: bool = t.Option(
+        False,
+        "--zed-mode",
+        help="Enable Zed editor compatibility mode",
+    ),
     verbose: bool = t.Option(
         False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback
     ),
@@ -135,6 +140,7 @@ def start(
                 transport_options=transport_options,
                 enable_injection=enable_injection,
                 injection_port=injection_port,
+                zed_mode=zed_mode,
             )
             asyncio.run(server.start(raise_exceptions=True))
     except KeyboardInterrupt:
