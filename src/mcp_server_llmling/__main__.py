@@ -111,7 +111,12 @@ def start(
     injection_host: str = t.Option("localhost", help=INJ_HOST_HELP),
     injection_port: int = t.Option(8765, help=INJ_PORT_HELP),
     server_name: str = t.Option(constants.SERVER_NAME, *NAME_CMDS, help=NAME_HELP),
-    log_level: LogLevel = t.Option(LogLevel.INFO, "-l", "--log-level"),  # noqa: B008
+    log_level: LogLevel = t.Option(  # noqa: B008
+        LogLevel.INFO,
+        "-l",
+        "--log-level",
+        case_sensitive=False,
+    ),
     timeout: float = t.Option(30.0, help=TIMEOUT_HELP),
     enable_injection: bool = t.Option(False, help="Enable config injection server"),
     zed_mode: bool = t.Option(
