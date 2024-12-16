@@ -63,6 +63,7 @@ class LLMLingServer:
         self.name = name
         self.runtime = runtime
         # Handle Zed mode if enabled
+        self.zed_mode = zed_mode
         if zed_mode:
             from mcp_server_llmling.zed_mode import prepare_runtime_for_zed
 
