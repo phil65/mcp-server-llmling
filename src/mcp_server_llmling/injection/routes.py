@@ -196,7 +196,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
             }
         },
     )
-    async def list_resources() -> dict[str, Resource]:
+    async def list_resources() -> dict[str, BaseResource]:
         """List all resources with their configuration."""
         return {
             name: server.llm_server.runtime._resource_registry[name]
