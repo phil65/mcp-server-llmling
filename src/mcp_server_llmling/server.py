@@ -65,7 +65,7 @@ class LLMLingServer:
         # Handle Zed mode if enabled
         self.zed_mode = zed_mode
         if zed_mode:
-            from mcp_server_llmling.zed_mode import prepare_runtime_for_zed
+            from mcp_server_llmling.zed_wrapper import prepare_runtime_for_zed
 
             prepare_runtime_for_zed(runtime)
         self._subscriptions: defaultdict[str, set[mcp.ServerSession]] = defaultdict(set)
