@@ -1,17 +1,8 @@
 from __future__ import annotations
 
-import logging
-import os
-
 import pytest
 
 from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
-
-
-# Configure logfire to suppress warnings
-os.environ["LOGFIRE_IGNORE_NO_CONFIG"] = "1"
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
