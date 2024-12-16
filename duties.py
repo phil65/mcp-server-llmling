@@ -58,3 +58,9 @@ def version(ctx, *args: str):
     """Bump package version."""
     args_str = " " + " ".join(args) if args else ""
     ctx.run(f"hatch version{args_str}")
+
+
+@duty(capture=False)
+def inspector(ctx):
+    """Run inspector tool for debugging."""
+    ctx.run("npx @modelcontextprotocol/inspector@latest")
