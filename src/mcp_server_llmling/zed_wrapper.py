@@ -1,123 +1,125 @@
-"""Function parameter encoding utils. Used for Zed to overcome one-argument limitation."""
+"""Function parameter encoding utils for Zed compatibility."""
 
 from __future__ import annotations
 
 from functools import wraps
-import inspect
-from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any
+
+from llmling.core.log import get_logger
+from llmling.prompts.models import DynamicPrompt, PromptParameter
+from llmling.utils import importing
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from llmling import RuntimeConfig
+
+logger = get_logger(__name__)
 
 
-P = ParamSpec("P")
-R = TypeVar("R")
+def decode_zed_args(input_str: str) -> dict[str, Any]:
+    """Decode Zed-style input string into kwargs dict."""
+    if " :: " not in input_str:
+        # Single argument case - use as first argument
+        return {"main_arg": input_str}
 
+    # Multiple arguments case
+    parts = input_str.split(" :: ", 1)
+    result: dict[str, Any] = {"main_arg": parts[0]}
 
-def with_encoded_params(
-    func: Callable[P, R],
-) -> Callable[P, R] | Callable[[str], R]:
-    """Wrap a function to accept encoded parameters as a single string.
-
-    Only wraps functions with more than one parameter. Functions with 0 or 1
-    parameters are returned as-is.
-
-    Format: "arg :: key1=value1 | key2=value2"
-    The part before :: is the first argument, after are key-value pairs.
-
-    Args:
-        func: The function to wrap.
-
-    Returns:
-        Either the original function (if 0-1 params) or a wrapped version.
-    """
-    sig = inspect.signature(func)
-    param_count = len(sig.parameters)
-
-    # Don't wrap functions with 0 or 1 parameters
-    if param_count <= 1:
-        return func
-
-    @wraps(func)
-    def wrapper(param_string: str) -> R:
-        # Split arg and kwargs
-        parts = param_string.split(" :: ", 1)
-        first_arg = parts[0]
-
-        if len(parts) == 1:
-            return func(first_arg)  # type: ignore
-
-        # Parse kwargs
-        kwargs: dict[str, Any] = {}
+    if len(parts) > 1:
         for pair in parts[1].split(" | "):
             if not pair:
                 continue
             key, value = pair.split("=", 1)
-            # Convert value to appropriate type
+            # Convert value types
             match value.lower():
                 case "true":
-                    kwargs[key] = True
+                    result[key] = True
                 case "false":
-                    kwargs[key] = False
+                    result[key] = False
                 case "null":
-                    kwargs[key] = None
+                    result[key] = None
                 case _:
                     try:
                         if "." in value:
-                            kwargs[key] = float(value)
+                            result[key] = float(value)
                         else:
-                            kwargs[key] = int(value)
+                            result[key] = int(value)
                     except ValueError:
-                        kwargs[key] = value
+                        result[key] = value
 
-        return func(first_arg, **kwargs)  # type: ignore
+    return result
 
-    # Create new signature and docstring for the wrapper
-    orig_sig = inspect.signature(func)
-    orig_doc = func.__doc__ or ""
 
-    # Create a new docstring that includes both wrapper and original info
-    wrapper.__doc__ = f"""Wrapped version of {func.__name__}.
+def create_zed_wrapper(func: Any) -> Any:
+    """Create a wrapper that accepts Zed-style input."""
 
-    Args:
-        param_string: Encoded parameters in format: "arg :: key=value | key2=value2"
-                     where 'arg' is passed as the first argument and the rest
-                     are passed as keyword arguments.
+    @wraps(func)
+    def wrapper(input: str, **_kwargs: Any) -> Any:  # noqa: A002
+        kwargs = decode_zed_args(input)
+        return func(**kwargs)
 
-    Original function:
-        {orig_doc}
-
-    Original signature:
-        {func.__name__}{orig_sig}
-    """
-
-    # Update the wrapper's signature
-    wrapper.__signature__ = inspect.Signature(  # type: ignore
-        [
-            inspect.Parameter(
-                "param_string",
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=str,
-            )
-        ]
-    )
-
+    # Copy over metadata
+    wrapper.__module__ = func.__module__
+    wrapper.__qualname__ = f"zed_wrapped_{func.__qualname__}"
     return wrapper
 
 
-if __name__ == "__main__":
+def prepare_runtime_for_zed(runtime: RuntimeConfig) -> None:
+    """Prepare runtime configuration for Zed compatibility."""
+    logger.info("Enabling Zed compatibility mode")
+    registry = runtime._prompt_registry
 
-    @with_encoded_params
-    def process_item(
-        item: str,
-        color: str = "red",
-        count: int = 1,
-        active: bool = True,
-    ) -> str:
-        return f"Processing {count} {color} {item}(s), active: {active}"
+    for name, prompt in list(registry.items()):
+        # Only process DynamicPrompts
+        if not isinstance(prompt, DynamicPrompt):
+            continue
 
-    # Examples
-    result = process_item("box :: color=blue | count=3")
-    result = process_item("container :: active=false | count=5 | color=green")
-    result = process_item("sphere")  # just arg, no kwargs
+        # Skip if only one or zero parameters
+        if len(prompt.arguments) <= 1:
+            logger.debug(
+                "Skipping prompt %r (has %d arguments)", name, len(prompt.arguments)
+            )
+            continue
+
+        try:
+            # Get and wrap the original function
+            original_func = importing.import_callable(prompt.import_path)
+            wrapped_func = create_zed_wrapper(original_func)
+
+            # Create new import path
+            wrapped_path = f"{wrapped_func.__module__}.{wrapped_func.__qualname__}"
+
+            # Register wrapper in the module
+            import sys
+
+            module = sys.modules[wrapped_func.__module__]
+            setattr(module, wrapped_func.__qualname__, wrapped_func)
+
+            # Create new prompt with single input parameter
+            args = ", ".join(a.name for a in prompt.arguments)
+            new_prompt = DynamicPrompt(
+                name=prompt.name,
+                description=prompt.description,
+                import_path=wrapped_path,
+                template=prompt.template,
+                completions=prompt.completions,
+                arguments=[
+                    PromptParameter(
+                        name="input",
+                        description=(
+                            "Format: 'first_arg :: key1=value1 | key2=value2' "
+                            f"(Original args: {args})"
+                        ),
+                        required=True,
+                    )
+                ],
+            )
+            # Replace in registry with force
+            registry.register(name, new_prompt, replace=True)
+            logger.debug(
+                "Wrapped prompt %r (%d args) for Zed mode", name, len(prompt.arguments)
+            )
+
+        except Exception:
+            logger.exception("Failed to wrap function for prompt %r", name)
