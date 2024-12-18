@@ -16,7 +16,6 @@ from pydantic import AnyUrl
 from mcp_server_llmling import constants
 from mcp_server_llmling.handlers import register_handlers
 from mcp_server_llmling.log import get_logger
-from mcp_server_llmling.observers import PromptObserver, ResourceObserver, ToolObserver
 from mcp_server_llmling.transports.sse import SSEServer
 from mcp_server_llmling.transports.stdio import StdioServer
 
@@ -25,6 +24,9 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Coroutine
     import os
 
+    from llmling.config.models import BaseResource
+    from llmling.prompts.models import BasePrompt
+    from llmling.tools.base import LLMCallableTool
     import mcp
     from mcp import Implementation
 
@@ -91,7 +93,7 @@ class LLMLingServer:
         else:
             self.injection_server = None
         self._setup_handlers()
-        self._setup_observers()
+        self._setup_events()
 
     def _create_transport(
         self, transport_type: TransportType, options: dict[str, Any]
@@ -163,14 +165,25 @@ class LLMLingServer:
         """Register MCP protocol handlers."""
         register_handlers(self)
 
-    def _setup_observers(self) -> None:
-        """Set up registry observers for MCP notifications."""
-        # Store observer instances to keep them alive
-        self._observers = {
-            "resource": ResourceObserver(self),
-            "prompt": PromptObserver(self),
-            "tool": ToolObserver(self),
-        }
+    def _setup_events(self) -> None:
+        """Set up registry event handlers."""
+        # Resource events
+        registry = self.runtime._resource_registry
+        registry.events.added.connect(self._handle_resource_added)
+        registry.events.removed.connect(self._handle_resource_removed)
+        registry.events.changed.connect(self._handle_resource_modified)
+
+        # Prompt events
+        registry = self.runtime._prompt_registry
+        registry.events.added.connect(self._handle_prompt_change)
+        registry.events.removed.connect(self._handle_prompt_change)
+        registry.events.changed.connect(self._handle_prompt_change)
+
+        # Tool events
+        registry = self.runtime._tool_registry
+        registry.events.added.connect(self._handle_tool_change)
+        registry.events.removed.connect(self._handle_tool_change)
+        registry.events.changed.connect(self._handle_tool_change)
 
     async def start(self, *, raise_exceptions: bool = False) -> None:
         """Start the server."""
@@ -215,9 +228,6 @@ class LLMLingServer:
                     task.cancel()
                 await asyncio.gather(*self._tasks, return_exceptions=True)
                 self._tasks.clear()
-
-            # Clear observers (connections are automatically removed)
-            self._observers.clear()
 
             # Shutdown runtime
             await self.runtime.shutdown()
@@ -312,6 +322,28 @@ class LLMLingServer:
             logger.debug("No active session for notification")
         except Exception:
             logger.exception("Failed to send tool list change notification")
+
+    def _handle_resource_added(self, key: str, resource: BaseResource) -> None:
+        """Handle resource addition."""
+        self._create_task(self.notify_resource_list_changed())
+
+    def _handle_resource_modified(self, key: str, resource: BaseResource) -> None:
+        """Handle resource modification."""
+        loader = self.runtime.get_resource_loader(resource)
+        uri = loader.create_uri(name=key)
+        self._create_task(self.notify_resource_change(uri))
+
+    def _handle_resource_removed(self, key: str, resource: BaseResource) -> None:
+        """Handle resource removal."""
+        self._create_task(self.notify_resource_list_changed())
+
+    def _handle_prompt_change(self, key: str, prompt: BasePrompt) -> None:
+        """Handle any prompt change."""
+        self._create_task(self.notify_prompt_list_changed())
+
+    def _handle_tool_change(self, key: str, tool: LLMCallableTool) -> None:
+        """Handle any tool change."""
+        self._create_task(self.notify_tool_list_changed())
 
 
 if __name__ == "__main__":
