@@ -165,13 +165,12 @@ class LLMLingServer:
 
     def _setup_observers(self) -> None:
         """Set up registry observers for MCP notifications."""
-        self.resource_observer = ResourceObserver(self)
-        self.prompt_observer = PromptObserver(self)
-        self.tool_observer = ToolObserver(self)
-
-        self.runtime.add_observer(self.resource_observer.events, "resource")
-        self.runtime.add_observer(self.prompt_observer.events, "prompt")
-        self.runtime.add_observer(self.tool_observer.events, "tool")
+        # Store observer instances to keep them alive
+        self._observers = {
+            "resource": ResourceObserver(self),
+            "prompt": PromptObserver(self),
+            "tool": ToolObserver(self),
+        }
 
     async def start(self, *, raise_exceptions: bool = False) -> None:
         """Start the server."""
@@ -217,10 +216,8 @@ class LLMLingServer:
                 await asyncio.gather(*self._tasks, return_exceptions=True)
                 self._tasks.clear()
 
-            # Remove observers
-            self.runtime.remove_observer(self.resource_observer.events, "resource")
-            self.runtime.remove_observer(self.prompt_observer.events, "prompt")
-            self.runtime.remove_observer(self.tool_observer.events, "tool")
+            # Clear observers (connections are automatically removed)
+            self._observers.clear()
 
             # Shutdown runtime
             await self.runtime.shutdown()
