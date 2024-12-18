@@ -29,7 +29,6 @@ def server() -> LLMLingServer:
 
     server = LLMLingServer(mock_runtime)
 
-    # Mock notification methods
     async def notify_change(uri: str) -> None: ...
     async def notify_list_changed() -> None: ...
 
