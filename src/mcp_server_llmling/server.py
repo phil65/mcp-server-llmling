@@ -168,22 +168,22 @@ class LLMLingServer:
     def _setup_events(self) -> None:
         """Set up registry event handlers."""
         # Resource events
-        registry = self.runtime._resource_registry
-        registry.events.added.connect(self._handle_resource_added)
-        registry.events.removed.connect(self._handle_resource_removed)
-        registry.events.changed.connect(self._handle_resource_modified)
+        resource_registry = self.runtime._resource_registry
+        resource_registry.events.added.connect(self._handle_resource_added)
+        resource_registry.events.removed.connect(self._handle_resource_removed)
+        resource_registry.events.changed.connect(self._handle_resource_modified)
 
         # Prompt events
-        registry = self.runtime._prompt_registry
-        registry.events.added.connect(self._handle_prompt_change)
-        registry.events.removed.connect(self._handle_prompt_change)
-        registry.events.changed.connect(self._handle_prompt_change)
+        prompt_registry = self.runtime._prompt_registry
+        prompt_registry.events.added.connect(self._handle_prompt_change)
+        prompt_registry.events.removed.connect(self._handle_prompt_change)
+        prompt_registry.events.changed.connect(self._handle_prompt_change)
 
         # Tool events
-        registry = self.runtime._tool_registry
-        registry.events.added.connect(self._handle_tool_change)
-        registry.events.removed.connect(self._handle_tool_change)
-        registry.events.changed.connect(self._handle_tool_change)
+        tool_registry = self.runtime._tool_registry
+        tool_registry.events.added.connect(self._handle_tool_change)
+        tool_registry.events.removed.connect(self._handle_tool_change)
+        tool_registry.events.changed.connect(self._handle_tool_change)
 
     async def start(self, *, raise_exceptions: bool = False) -> None:
         """Start the server."""
