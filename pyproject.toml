@@ -34,7 +34,9 @@ keywords = []
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
 dependencies = [
-    "fastapi>=0.115.6",
+    "fastapi[standard]>=0.115.6",
+    "universal-pathlib>=0.2.5",
+    "uvicorn",
     "llmling>=1.0.0",
     "mcp>=1.1.0",
     "pydantic",
