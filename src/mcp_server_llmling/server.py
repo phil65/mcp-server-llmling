@@ -16,6 +16,7 @@ from pydantic import AnyUrl
 from mcp_server_llmling import constants
 from mcp_server_llmling.handlers import register_handlers
 from mcp_server_llmling.log import get_logger
+from mcp_server_llmling.server_federation import FederatedServers, ServerFederation
 from mcp_server_llmling.transports.sse import SSEServer
 from mcp_server_llmling.transports.stdio import StdioServer
 
@@ -64,14 +65,17 @@ class LLMLingServer:
         """
         self.name = name
         self.runtime = runtime
+
         # Handle Zed mode if enabled
         self.zed_mode = zed_mode
         if zed_mode:
             from mcp_server_llmling.zed_wrapper import prepare_runtime_for_zed
 
             prepare_runtime_for_zed(runtime)
+
         self._subscriptions: defaultdict[str, set[mcp.ServerSession]] = defaultdict(set)
         self._tasks: set[asyncio.Task[Any]] = set()
+        self.federation = ServerFederation()
 
         # Create MCP server
         self.server = Server(name)
@@ -83,15 +87,14 @@ class LLMLingServer:
 
         # Create transport
         self.transport = self._create_transport(transport, transport_options or {})
+
+        # Setup injection if enabled
+        self.injection_server = None
         if enable_injection and isinstance(self.transport, StdioServer):
             from mcp_server_llmling.injection import ConfigInjectionServer
 
-            self.injection_server: ConfigInjectionServer | None = ConfigInjectionServer(
-                self,
-                port=injection_port,
-            )
-        else:
-            self.injection_server = None
+            self.injection_server = ConfigInjectionServer(self, port=injection_port)
+
         self._setup_handlers()
         self._setup_events()
 
@@ -188,6 +191,12 @@ class LLMLingServer:
     async def start(self, *, raise_exceptions: bool = False) -> None:
         """Start the server."""
         try:
+            if (extra := self.runtime._config.model_extra) and (
+                external_servers := extra.get("external_servers")
+            ):
+                config = FederatedServers(external_servers=external_servers)
+                await self.federation.connect_servers(config)
+
             # Start injection server in a separate task if enabled
             injection_task = None
             if self.injection_server:
@@ -221,7 +230,7 @@ class LLMLingServer:
                 await self.injection_server.stop()
 
             await self.transport.shutdown()
-
+            await self.federation.close()
             # Cancel all pending tasks
             if self._tasks:
                 for task in self._tasks:
