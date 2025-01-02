@@ -20,7 +20,7 @@ def to_mcp_tool(tool: LLMCallableTool) -> types.Tool:
     return types.Tool(
         name=schema["function"]["name"],
         description=schema["function"]["description"],
-        inputSchema=schema["function"]["parameters"],
+        inputSchema=schema["function"]["parameters"],  # pyright: ignore
     )
 
 

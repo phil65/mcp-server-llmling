@@ -56,7 +56,7 @@ class SSEServer(TransportBase):
         host: str = "localhost",
         port: int = 8000,
         cors_origins: list[str] | None = None,
-    ) -> None:
+    ):
         super().__init__(server)
         self.host = host
         self.port = port
@@ -77,7 +77,7 @@ class SSEServer(TransportBase):
         sse = SseServerTransport("/messages")
         handler = configure_server_logging(self.server)
 
-        async def handle_sse(scope: dict, receive: Any, send: Any) -> None:
+        async def handle_sse(scope: dict, receive: Any, send: Any):
             """Handle SSE connection endpoint."""
             client = scope.get("client", ("unknown", 0))[0]
             logger.info("New SSE connection from %s", client)
@@ -104,7 +104,7 @@ class SSEServer(TransportBase):
                 finally:
                     logger.info("SSE connection closed")
 
-        async def handle_messages(scope: dict, receive: Any, send: Any) -> None:
+        async def handle_messages(scope: dict, receive: Any, send: Any):
             """Handle POST messages from clients."""
             try:
                 await sse.handle_post_message(scope, receive, send)
@@ -130,7 +130,7 @@ class SSEServer(TransportBase):
         self._app = app
         return app
 
-    async def serve(self, *, raise_exceptions: bool = False) -> None:
+    async def serve(self, *, raise_exceptions: bool = False):
         """Start serving the SSE transport.
 
         Args:
@@ -154,7 +154,7 @@ class SSEServer(TransportBase):
             logger.info(msg, self.host, self.port, ", ".join(self.cors_origins))
 
             # Handle graceful shutdown
-            async def shutdown_handler() -> None:
+            async def shutdown_handler():
                 logger.info("Received shutdown signal")
                 if self._server:
                     self._server.should_exit = True
@@ -172,7 +172,7 @@ class SSEServer(TransportBase):
             self._server = None
             logger.info("SSE server stopped")
 
-    async def shutdown(self) -> None:
+    async def shutdown(self):
         """Gracefully shutdown the SSE server."""
         if self._server:
             self._server.should_exit = True
@@ -181,7 +181,7 @@ class SSEServer(TransportBase):
 
 if __name__ == "__main__":
     # Example usage
-    async def main() -> None:
+    async def main():
         server = Server("example-server")
         transport = SSEServer(
             server, host="localhost", port=8000, cors_origins=["http://localhost:3000"]
