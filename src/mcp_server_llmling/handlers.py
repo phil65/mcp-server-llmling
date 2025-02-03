@@ -84,10 +84,12 @@ def register_handlers(llm_server: LLMLingServer) -> None:
                 description=prompt.description, messages=mcp_msgs
             )
         except exceptions.LLMLingError as exc:
-            msg = str(exc)
-            error = mcp.McpError(msg)
-            code = types.INVALID_PARAMS if "not found" in msg else types.INTERNAL_ERROR
-            error.error = mcp.ErrorData(code=code, message=msg)
+            error_msg = str(exc)
+            error = mcp.McpError(error_msg)
+            code = (
+                types.INVALID_PARAMS if "not found" in error_msg else types.INTERNAL_ERROR
+            )
+            error.error = mcp.ErrorData(code=code, message=error_msg)
             raise error from exc
 
     @llm_server.server.list_resources()
@@ -105,10 +107,9 @@ def register_handlers(llm_server: LLMLingServer) -> None:
                 )
                 resources.append(res)
             except Exception:
-                msg = "Failed to create resource listing for %r. Config: %r"
-                logger.exception(
-                    msg, name, llm_server.runtime._config.resources.get(name)
-                )
+                error_msg = "Failed to create resource listing for %r. Config: %r"
+                cfg = llm_server.runtime._config.resources.get(name)
+                logger.exception(error_msg, name, cfg)
                 continue
 
         return resources
@@ -151,9 +152,9 @@ def register_handlers(llm_server: LLMLingServer) -> None:
             return resource.content_items[0].content.encode()
 
         except Exception as exc:
-            msg = f"Failed to read resource: {exc}"
-            logger.exception(msg)
-            error = mcp.McpError(msg)
+            error_msg = f"Failed to read resource: {exc}"
+            logger.exception(error_msg)
+            error = mcp.McpError(error_msg)
             error.error = mcp.ErrorData(code=types.INTERNAL_ERROR, message=str(exc))
             raise error from exc
 
