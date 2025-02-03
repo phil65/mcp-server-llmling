@@ -39,8 +39,12 @@ def register_handlers(llm_server: LLMLingServer) -> None:
                 level, data, logger=llm_server.name
             )
         except Exception as exc:
-            error = mcp.McpError("Error setting log level")
-            error.error = mcp.ErrorData(code=types.INTERNAL_ERROR, message=str(exc))
+            error_data = mcp.ErrorData(
+                message="Error setting log level",
+                code=types.INTERNAL_ERROR,
+                data=str(exc),
+            )
+            error = mcp.McpError(error_data)
             raise error from exc
 
     @llm_server.server.list_tools()
@@ -85,11 +89,11 @@ def register_handlers(llm_server: LLMLingServer) -> None:
             )
         except exceptions.LLMLingError as exc:
             error_msg = str(exc)
-            error = mcp.McpError(error_msg)
             code = (
                 types.INVALID_PARAMS if "not found" in error_msg else types.INTERNAL_ERROR
             )
-            error.error = mcp.ErrorData(code=code, message=error_msg)
+            error_data = mcp.ErrorData(code=code, message=error_msg)
+            error = mcp.McpError(error_data)
             raise error from exc
 
     @llm_server.server.list_resources()
@@ -154,8 +158,10 @@ def register_handlers(llm_server: LLMLingServer) -> None:
         except Exception as exc:
             error_msg = f"Failed to read resource: {exc}"
             logger.exception(error_msg)
-            error = mcp.McpError(error_msg)
-            error.error = mcp.ErrorData(code=types.INTERNAL_ERROR, message=str(exc))
+            error_data = mcp.ErrorData(
+                message=error_msg, code=types.INTERNAL_ERROR, data=exc
+            )
+            error = mcp.McpError(error_data)
             raise error from exc
 
     @llm_server.server.completion()
