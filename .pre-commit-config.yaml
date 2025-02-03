@@ -6,7 +6,7 @@ repos:
     hooks:
       - id: pytest-check
         name: pytest-check
-        entry: uv run pytest
+        entry: uv run pytest -n auto
         language: system
         # stages: [push]
         types: [python]
