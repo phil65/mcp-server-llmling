@@ -1,6 +1,6 @@
 """MCP protocol server implementation for LLMling."""
 
-__version__ = "0.5.6"
+__version__ = "0.5.7"
 
 from fsspec_httpx import register
 
