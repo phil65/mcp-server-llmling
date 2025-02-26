@@ -2,6 +2,10 @@
 
 __version__ = "0.5.5"
 
+from fsspec_httpx import register
+
+register()
+
 from mcp_server_llmling.server import LLMLingServer
 
 

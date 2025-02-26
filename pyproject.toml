@@ -43,6 +43,7 @@ dependencies = [
     "logfire>=2.6.2",
     # Only add below (Copier)
     "websockets>=14.1",
+    "fsspec-httpx>=0.1.2",
 ]
 
 [project.scripts]
