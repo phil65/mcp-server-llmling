@@ -182,7 +182,7 @@ class SSEServer(TransportBase):
 if __name__ == "__main__":
     # Example usage
     async def main():
-        server = Server("example-server")
+        server = Server[Any]("example-server")
         transport = SSEServer(
             server, host="localhost", port=8000, cors_origins=["http://localhost:3000"]
         )

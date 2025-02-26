@@ -78,7 +78,7 @@ class LLMLingServer:
         self.federation = ServerFederation()
 
         # Create MCP server
-        self.server = Server(name)
+        self.server = Server[Any](name)
         self.server.notification_options = NotificationOptions(
             prompts_changed=True,
             resources_changed=True,
