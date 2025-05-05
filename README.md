@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/phil65-mcp-server-llmling-badge.png)](https://mseep.ai/app/phil65-mcp-server-llmling)
+
 # mcp-server-llmling
 
 [![PyPI License](https://img.shields.io/pypi/l/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
