@@ -202,7 +202,6 @@ resources:
       ================
       ...
 ```
-
 ### 4. Tool Configuration
 
 ```yaml
@@ -215,8 +214,11 @@ toolsets:
   api:
     type: openapi
     spec: "https://api.example.com/openapi.json"
-    namespace: "api"
 ```
+
+> [!TIP]
+> For OpenAPI schemas, you can install [Redocly CLI](https://github.com/Redocly/redocly-cli) to bundle and resolve OpenAPI specifications before using them with LLMLing. This helps ensure your schema references are properly resolved and the specification is correctly formatted. If redocly is installed, it will be used automatically.
+
 
 ## Server Configuration
 

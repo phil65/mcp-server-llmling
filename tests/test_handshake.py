@@ -5,23 +5,25 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from mcp.types import JSONRPCMessage, JSONRPCNotification, JSONRPCRequest
+from llmling import Config, RuntimeConfig
+from mcp.shared.memory import create_connected_server_and_client_session
 import pytest
 
-from mcp_server_llmling import constants
+from mcp_server_llmling import LLMLingServer, constants
 
 
 if TYPE_CHECKING:
-    from llmling.config.runtime import RuntimeConfig
-
-    from mcp_server_llmling import LLMLingServer
     from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
 
 
 INFO = {"name": "test-client", "version": "1.0"}
-PARAMS = {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": INFO}
+PARAMS = {
+    "protocolVersion": "2025-03-26",
+    "capabilities": {},
+    "clientInfo": {"name": "test-client", "version": "1.0"},
+}
 
 
 @pytest.mark.asyncio
@@ -53,32 +55,29 @@ async def test_server_lifecycle_handshake_client(client: MCPInProcSession) -> No
         await client.close()
 
 
-@pytest.mark.asyncio
-async def test_server_lifecycle_test_session(
-    running_server: tuple[LLMLingServer, tuple[Any, Any]],
-) -> None:
-    """Test server lifecycle using test session."""
-    req = JSONRPCRequest(jsonrpc="2.0", id=1, method="initialize", params=PARAMS)
-    server, (client_read, client_write) = running_server
-    init_request = JSONRPCMessage(req)
+@pytest.mark.anyio
+async def test_server_lifecycle_test_session():
+    # Minimal config for LLMLingServer
+    config = Config()
+    runtime = RuntimeConfig.from_config(config=config)
+    server = LLMLingServer(runtime)
 
-    await client_write.send(init_request)
-    response = await client_read.receive()
-    assert "result" in response.root.model_dump()
-    result = response.root.result
-    assert "serverInfo" in result
-    assert result["serverInfo"]["name"] == constants.SERVER_NAME
+    async with create_connected_server_and_client_session(server.server) as client:
+        # Handshake
+        result = await client.initialize()
+        assert result.serverInfo.name == server.name
 
-    # Send initialized notification
-    noti = JSONRPCNotification(jsonrpc="2.0", method="notifications/initialized")
-    notification = JSONRPCMessage(noti)
-    await client_write.send(notification)
-    req = JSONRPCRequest(jsonrpc="2.0", id=2, method="tools/list")
-    # Test functionality
-    tools_request = JSONRPCMessage(req)
-    await client_write.send(tools_request)
-    tools_response = await client_read.receive()
-    assert "tools" in tools_response.root.result
+        # List tools
+        tools = await client.list_tools()
+        assert isinstance(tools.tools, list)
+
+        # List resources
+        resources = await client.list_resources()
+        assert isinstance(resources.resources, list)
+
+        # List prompts
+        prompts = await client.list_prompts()
+        assert isinstance(prompts.prompts, list)
 
 
 @pytest.mark.asyncio
