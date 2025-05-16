@@ -21,6 +21,13 @@ def to_mcp_tool(tool: LLMCallableTool) -> types.Tool:
         name=schema["function"]["name"],
         description=schema["function"]["description"],
         inputSchema=schema["function"]["parameters"],  # pyright: ignore
+        annotations=types.ToolAnnotations(
+            title=tool.name,
+            readOnlyHint=tool.hints.read_only if tool.hints else None,
+            destructiveHint=tool.hints.destructive if tool.hints else None,
+            idempotentHint=tool.hints.idempotent if tool.hints else None,
+            openWorldHint=tool.hints.open_world if tool.hints else None,
+        ),
     )
 
 
@@ -44,7 +51,9 @@ def to_mcp_message(msg: PromptMessage) -> types.PromptMessage:
 def to_mcp_argument(arg: PromptParameter) -> types.PromptArgument:
     """Convert to MCP PromptArgument."""
     return types.PromptArgument(
-        name=arg.name, description=arg.description, required=arg.required
+        name=arg.name,
+        description=arg.description,
+        required=arg.required,
     )
 
 
