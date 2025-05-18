@@ -68,7 +68,7 @@ class LLMLingServer:
 
         Args:
             runtime: Fully initialized runtime configuration
-            transport: Transport type to use ("stdio" or "sse")
+            transport: Transport type to use ("stdio", "streamable-http", or "sse")
             name: Server name for MCP protocol
             instructions: Instructions for client
             lifespan: Lifespan function for server

@@ -85,7 +85,7 @@ The YAML configuration creates a complete environment that provides the LLM with
 
 ### 4. Multiple Transport Options
 - Stdio-based communication (default)
-- Server-Sent Events (SSE) for web clients
+- Server-Sent Events (SSE) / Streamable HTTP for web clients
 - Support for custom transport implementations
 
 

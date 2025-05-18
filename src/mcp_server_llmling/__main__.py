@@ -38,7 +38,7 @@ cli.add_typer(list_cli, name="list")
 
 # Common option definitions
 CONFIG_HELP = "Path to LLMling configuration file"
-TRANSPORT_HELP = "Transport type (stdio or sse)"
+TRANSPORT_HELP = "Transport type (stdi, sse, streamable-http)"
 HOST_HELP = "Host address for SSE transport"
 PORT_HELP = "Port number for SSE transport"
 INJ_PORT_HELP = "Port for config injection server"
@@ -70,7 +70,7 @@ class LogLevel(str, Enum):
 def validate_transport(value: str) -> str:
     """Validate transport type."""
     if value not in {"stdio", "streamable-http", "sse"}:
-        msg = f"Invalid transport type: {value}. Must be 'stdio' or 'sse'"
+        msg = f"Invalid transport: {value}. Must be 'stdio', 'streamable-http' or 'sse'"
         raise t.BadParameter(msg)
     return value
 
@@ -134,7 +134,7 @@ def start(
     try:
         logging.getLogger().setLevel(log_level.value.upper())
         transport_options: dict[str, Any] = {}
-        if transport == "sse":
+        if transport in {"sse", "streamable-http"}:
             transport_options = {"host": host, "port": port}
 
         with RuntimeConfig.open_sync(config_path) as runtime:
