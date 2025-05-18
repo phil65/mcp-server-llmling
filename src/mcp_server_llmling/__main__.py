@@ -69,7 +69,7 @@ class LogLevel(str, Enum):
 
 def validate_transport(value: str) -> str:
     """Validate transport type."""
-    if value not in {"stdio", "sse"}:
+    if value not in {"stdio", "streamable-http", "sse"}:
         msg = f"Invalid transport type: {value}. Must be 'stdio' or 'sse'"
         raise t.BadParameter(msg)
     return value
@@ -166,7 +166,7 @@ def info(
         "Version": __version__,
         "Python": sys.version,
         "Platform": sys.platform,
-        "Supported transports": ["stdio", "sse"],
+        "Supported transports": ["stdio", "streamable-http", "sse"],
         "Default ports": {
             "SSE": 8000,
             "Injection": 8765,

@@ -91,7 +91,7 @@ def claude(
         config["mcpServers"][server_name] = server_config
         config_file_path.write_text(json.dumps(config, indent=2))
         t.echo(
-            f"Successfully installed '{server_name}' server in Claude Desktop config.",
+            f"Successfully installed {server_name!r} server in Claude Desktop config.",
         )
 
     except Exception as e:

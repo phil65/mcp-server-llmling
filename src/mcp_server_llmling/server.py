@@ -18,8 +18,6 @@ from mcp_server_llmling import constants
 from mcp_server_llmling.handlers import register_handlers
 from mcp_server_llmling.log import get_logger
 from mcp_server_llmling.server_federation import FederatedServers, ServerFederation
-from mcp_server_llmling.transports.sse import SSEServer
-from mcp_server_llmling.transports.stdio import StdioServer
 
 
 if TYPE_CHECKING:
@@ -35,11 +33,10 @@ if TYPE_CHECKING:
 
     # from mcp.server.auth.provider import OAuthAuthorizationServerProvider
     # from mcp.server.streamable_http import EventStore
-    from mcp_server_llmling.transports.base import TransportBase
 
 logger = get_logger(__name__)
 
-TransportType = Literal["stdio", "sse"]
+TransportType = Literal["stdio", "streamable-http", "sse"]
 
 
 class LLMLingServer:
@@ -91,7 +88,7 @@ class LLMLingServer:
         self._subscriptions: defaultdict[str, set[mcp.ServerSession]] = defaultdict(set)
         self._tasks: set[asyncio.Task[Any]] = set()
         self.federation = ServerFederation()
-
+        self.transport: TransportType = transport
         # Create MCP server
         self.fastmcp = FastMCP(
             name,
@@ -107,30 +104,15 @@ class LLMLingServer:
             tools_changed=True,
         )
 
-        self.transport = self._create_transport(transport, transport_options or {})
-
         # Setup injection if enabled
         self.injection_server = None
-        if enable_injection and isinstance(self.transport, StdioServer):
+        if enable_injection and transport == "stdio":
             from mcp_server_llmling.injection import ConfigInjectionServer
 
             self.injection_server = ConfigInjectionServer(self, port=injection_port)
 
         self._setup_handlers()
         self._setup_events()
-
-    def _create_transport(
-        self, transport_type: TransportType, options: dict[str, Any]
-    ) -> TransportBase:
-        """Create transport instance."""
-        match transport_type:
-            case "stdio":
-                return StdioServer(self.server)
-            case "sse":
-                return SSEServer(self.server, **options)
-            case _:
-                msg = f"Unknown transport type: {transport_type}"
-                raise ValueError(msg)
 
     @classmethod
     @asynccontextmanager
@@ -234,10 +216,9 @@ class LLMLingServer:
                         raise
 
             # Run main server
-            await self.transport.serve(raise_exceptions=raise_exceptions)
+            await self.fastmcp.run_async(transport=self.transport)
 
         finally:
-            # Clean shutdown
             if injection_task:
                 injection_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -250,7 +231,7 @@ class LLMLingServer:
             if self.injection_server:
                 await self.injection_server.stop()
 
-            await self.transport.shutdown()
+            # await self.server.shutdown()
             await self.federation.close()
             # Cancel all pending tasks
             if self._tasks:

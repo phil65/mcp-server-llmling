@@ -9,7 +9,6 @@ from fastapi import FastAPI
 from mcp_server_llmling.injection import routes
 from mcp_server_llmling.injection.utils import find_free_port
 from mcp_server_llmling.log import get_logger
-from mcp_server_llmling.transports.stdio import StdioServer
 
 
 if TYPE_CHECKING:
@@ -113,9 +112,9 @@ class ConfigInjectionServer:
 
     async def start(self) -> None:
         """Start FastAPI server."""
-        if not isinstance(self.llm_server.transport, StdioServer):
+        if self.llm_server.transport != "stdio":
             msg = "Config injection requires stdio transport"
-            raise RuntimeError(msg)  # noqa: TRY004
+            raise RuntimeError(msg)
 
         import uvicorn
 
