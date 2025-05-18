@@ -48,6 +48,9 @@ class LLMLingServer:
         transport: TransportType = "stdio",
         name: str = constants.SERVER_NAME,
         instructions: str | None = None,
+        tags: set[str] | None = None,
+        dependencies: list[str] | None = None,
+        tool_serializer: Callable[[Any], str] | None = None,
         lifespan: (
             Callable[
                 [FastMCP[LifespanResultT]],
@@ -70,6 +73,9 @@ class LLMLingServer:
             transport: Transport type to use ("stdio", "streamable-http", or "sse")
             name: Server name for MCP protocol
             instructions: Instructions for client
+            tags: Tags for server
+            dependencies: Dependencies for server
+            tool_serializer: Tool serializer function
             lifespan: Lifespan function for server
             auth_server_provider: Auth server provider
             event_store: Event store
@@ -97,6 +103,9 @@ class LLMLingServer:
             lifespan=lifespan,
             auth_provider=auth_server_provider,
             event_store=event_store,
+            tags=tags,
+            dependencies=dependencies,
+            tool_serializer=tool_serializer,
         )
         self.server = self.fastmcp._mcp_server
         self.server.notification_options = NotificationOptions(
