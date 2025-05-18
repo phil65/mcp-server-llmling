@@ -207,10 +207,8 @@ class LLMLingServer:
                 try:
                     # Create task but don't await it directly
                     injection_task = asyncio.create_task(self.injection_server.start())
-                    logger.info(
-                        "Config injection server listening on port %d",
-                        self.injection_server.port,
-                    )
+                    msg = "Config injection server listening on port %d"
+                    logger.info(msg, self.injection_server.port)
                 except Exception:
                     logger.exception("Failed to start injection server")
                     if raise_exceptions:

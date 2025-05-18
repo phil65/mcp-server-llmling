@@ -77,9 +77,8 @@ def prepare_runtime_for_zed(runtime: RuntimeConfig) -> None:
 
         # Skip if only one or zero parameters
         if len(prompt.arguments) <= 1:
-            logger.debug(
-                "Skipping prompt %r (has %d arguments)", name, len(prompt.arguments)
-            )
+            msg = "Skipping prompt %r (has %d arguments)"
+            logger.debug(msg, name, len(prompt.arguments))
             continue
 
         try:
@@ -117,9 +116,8 @@ def prepare_runtime_for_zed(runtime: RuntimeConfig) -> None:
             )
             # Replace in registry with force
             registry.register(name, new_prompt, replace=True)
-            logger.debug(
-                "Wrapped prompt %r (%d args) for Zed mode", name, len(prompt.arguments)
-            )
+            msg = "Wrapped prompt %r (%d args) for Zed mode"
+            logger.debug(msg, name, len(prompt.arguments))
 
         except Exception:
             logger.exception("Failed to wrap function for prompt %r", name)

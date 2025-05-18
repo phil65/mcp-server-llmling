@@ -24,7 +24,7 @@ class ExternalServerBase(BaseModel):
 
     type: str = Field(init=False)
     name: str
-    transport: Literal["sse"] = "sse"  # for future extension to other transports
+    transport: Literal["sse", "streamable-http"] = "sse"
 
 
 class URLServerConfig(ExternalServerBase):
