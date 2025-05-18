@@ -44,6 +44,7 @@ dependencies = [
     # Only add below (Copier)
     "websockets>=14.1",
     "upathtools[httpx]",
+    "fastmcp>=2.3.4",
 ]
 
 [project.scripts]

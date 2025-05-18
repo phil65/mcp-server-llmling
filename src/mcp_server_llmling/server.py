@@ -5,12 +5,13 @@ from __future__ import annotations
 import asyncio
 from collections import defaultdict
 import contextlib
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import TYPE_CHECKING, Any, Literal, Self
 
+from fastmcp import FastMCP
 from llmling.config.manager import ConfigManager
 from llmling.config.runtime import RuntimeConfig
-from mcp.server import NotificationOptions, Server
+from mcp.server import NotificationOptions
 from pydantic import AnyUrl
 
 from mcp_server_llmling import constants
@@ -22,7 +23,7 @@ from mcp_server_llmling.transports.stdio import StdioServer
 
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Coroutine
+    from collections.abc import AsyncIterator, Callable, Coroutine
     import os
 
     from llmling.config.models import BaseResource
@@ -30,7 +31,10 @@ if TYPE_CHECKING:
     from llmling.tools.base import LLMCallableTool
     import mcp
     from mcp import Implementation
+    from mcp.server.lowlevel.server import LifespanResultT
 
+    # from mcp.server.auth.provider import OAuthAuthorizationServerProvider
+    # from mcp.server.streamable_http import EventStore
     from mcp_server_llmling.transports.base import TransportBase
 
 logger = get_logger(__name__)
@@ -47,6 +51,17 @@ class LLMLingServer:
         *,
         transport: TransportType = "stdio",
         name: str = constants.SERVER_NAME,
+        instructions: str | None = None,
+        lifespan: (
+            Callable[
+                [FastMCP[LifespanResultT]],
+                AbstractAsyncContextManager[LifespanResultT],
+            ]
+            | None
+        ) = None,
+        # auth_server_provider: OAuthAuthorizationServerProvider[Any, Any, Any]
+        # | None = None,
+        # event_store: EventStore | None = None,
         transport_options: dict[str, Any] | None = None,
         enable_injection: bool = False,
         injection_port: int = 8765,
@@ -58,6 +73,8 @@ class LLMLingServer:
             runtime: Fully initialized runtime configuration
             transport: Transport type to use ("stdio" or "sse")
             name: Server name for MCP protocol
+            instructions: Instructions for client
+            lifespan: Lifespan function for server
             transport_options: Additional options for transport
             enable_injection: Whether to enable config injection
             injection_port: Port for injection server
@@ -65,8 +82,6 @@ class LLMLingServer:
         """
         self.name = name
         self.runtime = runtime
-
-        # Handle Zed mode if enabled
         self.zed_mode = zed_mode
         if zed_mode:
             from mcp_server_llmling.zed_wrapper import prepare_runtime_for_zed
@@ -78,14 +93,20 @@ class LLMLingServer:
         self.federation = ServerFederation()
 
         # Create MCP server
-        self.server = Server[Any](name)
+        self.fastmcp = FastMCP(
+            name,
+            instructions=instructions,
+            lifespan=lifespan,
+            # auth_provider=auth_server_provider,
+            # event_store=event_store,
+        )
+        self.server = self.fastmcp._mcp_server
         self.server.notification_options = NotificationOptions(
             prompts_changed=True,
             resources_changed=True,
             tools_changed=True,
         )
 
-        # Create transport
         self.transport = self._create_transport(transport, transport_options or {})
 
         # Setup injection if enabled
