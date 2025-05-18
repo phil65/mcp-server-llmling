@@ -47,6 +47,7 @@ NAME_HELP = "Server name for MCP protocol"
 TIMEOUT_HELP = "Connection timeout in seconds"
 VERBOSE_HELP = "Enable verbose output"
 QUIET_HELP = "Suppress non-essential output"
+INSTRUCTIONS_HELP = "Instructions on how to use the server"
 
 # Option command tuples
 CONFIG_CMDS = "-c", "--config"
@@ -56,6 +57,7 @@ PORT_CMDS = "-p", "--port"
 NAME_CMDS = "-n", "--name"
 VERBOSE_CMDS = "-v", "--verbose"
 QUIET_CMDS = "-q", "--quiet"
+INSTRUCTIONS_CMDS = "-i", "--instructions"
 
 
 class LogLevel(str, Enum):
@@ -111,6 +113,7 @@ def start(
     injection_host: str = t.Option("localhost", help=INJ_HOST_HELP),
     injection_port: int = t.Option(8765, help=INJ_PORT_HELP),
     server_name: str = t.Option(constants.SERVER_NAME, *NAME_CMDS, help=NAME_HELP),
+    instructions: str | None = t.Option(None, *INSTRUCTIONS_CMDS, help=INSTRUCTIONS_HELP),
     log_level: LogLevel = t.Option(  # noqa: B008
         LogLevel.INFO,
         "-l",
@@ -142,6 +145,7 @@ def start(
                 runtime=runtime,
                 transport=transport,  # type: ignore
                 name=server_name,
+                instructions=instructions,
                 transport_options=transport_options,
                 enable_injection=enable_injection,
                 injection_port=injection_port,
