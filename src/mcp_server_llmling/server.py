@@ -29,10 +29,9 @@ if TYPE_CHECKING:
     from llmling.tools.base import LLMCallableTool
     import mcp
     from mcp import Implementation
+    from mcp.server.auth.provider import OAuthAuthorizationServerProvider
     from mcp.server.lowlevel.server import LifespanResultT
-
-    # from mcp.server.auth.provider import OAuthAuthorizationServerProvider
-    # from mcp.server.streamable_http import EventStore
+    from mcp.server.streamable_http import EventStore
 
 logger = get_logger(__name__)
 
@@ -56,9 +55,9 @@ class LLMLingServer:
             ]
             | None
         ) = None,
-        # auth_server_provider: OAuthAuthorizationServerProvider[Any, Any, Any]
-        # | None = None,
-        # event_store: EventStore | None = None,
+        auth_server_provider: OAuthAuthorizationServerProvider[Any, Any, Any]
+        | None = None,
+        event_store: EventStore | None = None,
         transport_options: dict[str, Any] | None = None,
         enable_injection: bool = False,
         injection_port: int = 8765,
@@ -72,6 +71,8 @@ class LLMLingServer:
             name: Server name for MCP protocol
             instructions: Instructions for client
             lifespan: Lifespan function for server
+            auth_server_provider: Auth server provider
+            event_store: Event store
             transport_options: Additional options for transport
             enable_injection: Whether to enable config injection
             injection_port: Port for injection server
@@ -94,8 +95,8 @@ class LLMLingServer:
             name,
             instructions=instructions,
             lifespan=lifespan,
-            # auth_provider=auth_server_provider,
-            # event_store=event_store,
+            auth_provider=auth_server_provider,
+            event_store=event_store,
         )
         self.server = self.fastmcp._mcp_server
         self.server.notification_options = NotificationOptions(
