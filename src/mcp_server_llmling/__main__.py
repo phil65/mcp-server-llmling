@@ -109,7 +109,7 @@ def start(
         callback=validate_transport,
     ),
     host: str = t.Option("localhost", *HOST_CMDS, help=HOST_HELP),
-    port: int = t.Option(8000, *PORT_CMDS, help=PORT_HELP),
+    port: int = t.Option(3001, *PORT_CMDS, help=PORT_HELP),
     injection_host: str = t.Option("localhost", help=INJ_HOST_HELP),
     injection_port: int = t.Option(8765, help=INJ_PORT_HELP),
     server_name: str = t.Option(constants.SERVER_NAME, *NAME_CMDS, help=NAME_HELP),
@@ -172,7 +172,7 @@ def info(
         "Platform": sys.platform,
         "Supported transports": ["stdio", "streamable-http", "sse"],
         "Default ports": {
-            "SSE": 8000,
+            "SSE": 3001,
             "Injection": 8765,
         },
     }

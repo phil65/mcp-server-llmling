@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
     async def main() -> None:
         """Example usage of SSEMCPClient."""
-        config = SSEClientConfig(server_url="http://localhost:8000")
+        config = SSEClientConfig(server_url="http://localhost:3001")
 
         async with SSEMCPClient(config) as client:
             # List available tools

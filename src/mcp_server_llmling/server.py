@@ -287,10 +287,7 @@ class LLMLingServer:
     ) -> None:
         """Send progress notification to client."""
         try:
-            # Get current session
             session = self.current_session
-
-            # Create and track the progress notification task
             task = session.send_progress_notification(
                 progress_token=token,
                 progress=progress,

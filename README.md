@@ -173,7 +173,7 @@ async def main() -> None:
             transport="sse",
             transport_options={
                 "host": "localhost",
-                "port": 8000,
+                "port": 3001,
                 "cors_origins": ["http://localhost:3000"]
             }
         )
