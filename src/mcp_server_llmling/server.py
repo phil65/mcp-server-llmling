@@ -24,14 +24,13 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable, Coroutine
     import os
 
+    from fastmcp.server.auth import AuthProvider
     from llmling.config.models import BaseResource
     from llmling.prompts.models import BasePrompt
     from llmling.tools.base import LLMCallableTool
     import mcp
     from mcp import Implementation
-    from mcp.server.auth.provider import OAuthAuthorizationServerProvider
     from mcp.server.lowlevel.server import LifespanResultT
-    from mcp.server.streamable_http import EventStore
 
 logger = get_logger(__name__)
 
@@ -58,9 +57,8 @@ class LLMLingServer:
             ]
             | None
         ) = None,
-        auth_server_provider: OAuthAuthorizationServerProvider[Any, Any, Any]
-        | None = None,
-        event_store: EventStore | None = None,
+        auth_server_provider: AuthProvider | None = None,
+        # event_store: EventStore | None = None,
         transport_options: dict[str, Any] | None = None,
         enable_injection: bool = False,
         injection_port: int = 8765,
@@ -78,7 +76,6 @@ class LLMLingServer:
             tool_serializer: Tool serializer function
             lifespan: Lifespan function for server
             auth_server_provider: Auth server provider
-            event_store: Event store
             transport_options: Additional options for transport
             enable_injection: Whether to enable config injection
             injection_port: Port for injection server
@@ -101,9 +98,8 @@ class LLMLingServer:
             name,
             instructions=instructions,
             lifespan=lifespan,
-            auth_provider=auth_server_provider,
-            event_store=event_store,
-            tags=tags,
+            auth=auth_server_provider,
+            include_tags=tags,
             dependencies=dependencies,
             tool_serializer=tool_serializer,
         )
@@ -224,7 +220,7 @@ class LLMLingServer:
                         raise
 
             # Run main server
-            await self.fastmcp.run_async(transport=self.transport)
+            await self.fastmcp.run_async(transport=self.transport, show_banner=False)
 
         finally:
             if injection_task:
