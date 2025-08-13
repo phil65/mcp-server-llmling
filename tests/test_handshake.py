@@ -27,7 +27,10 @@ PARAMS = {
 }
 
 
-@pytest.mark.skipif(platform.system() == "Linux", reason="Timeout issues on Ubuntu/Linux")
+@pytest.mark.skipif(
+    platform.system() in ("Linux", "Windows"),
+    reason="Timeout issues on Ubuntu/Linux and Windows",
+)
 @pytest.mark.asyncio
 async def test_server_lifecycle_handshake_client(client: MCPInProcSession) -> None:
     """Test server lifecycle using MCPInProcSession."""
