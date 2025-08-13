@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import httpx
+import yaml
 
 
 YAML_CONFIG = """
@@ -38,8 +39,6 @@ async def main() -> None:
             import_path: llmling.testing.tools.example_tool
             description: "A test tool"
         """
-
-        import yaml
 
         config = yaml.safe_load(yaml_config)
         print(f"Sending config: {config}")

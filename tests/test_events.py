@@ -3,23 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from llmling.config.models import TextResource
 from psygnal.containers import EventedDict
 import pytest
 
-
-if TYPE_CHECKING:
-    from mcp_server_llmling.server import LLMLingServer
+from mcp_server_llmling.server import LLMLingServer
 
 
 @pytest.fixture
 def server() -> LLMLingServer:
     """Create a server instance with mocked notifications."""
-    from mcp_server_llmling.server import LLMLingServer
-
     # Create server with minimal runtime
     mock_runtime = Mock()
     mock_runtime._resource_registry = EventedDict()
