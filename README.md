@@ -2,8 +2,6 @@
 
 [![PyPI License](https://img.shields.io/pypi/l/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
 [![Package status](https://img.shields.io/pypi/status/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
-[![Daily downloads](https://img.shields.io/pypi/dd/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
-[![Weekly downloads](https://img.shields.io/pypi/dw/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
 [![Monthly downloads](https://img.shields.io/pypi/dm/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
 [![Distribution format](https://img.shields.io/pypi/format/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
 [![Wheel availability](https://img.shields.io/pypi/wheel/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
@@ -21,11 +19,8 @@
 [![Github last commit](https://img.shields.io/github/last-commit/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/commits)
 [![Github release date](https://img.shields.io/github/release-date/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/releases)
 [![Github language count](https://img.shields.io/github/languages/count/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling)
-[![Github commits this week](https://img.shields.io/github/commit-activity/w/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling)
 [![Github commits this month](https://img.shields.io/github/commit-activity/m/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling)
-[![Github commits this year](https://img.shields.io/github/commit-activity/y/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling)
 [![Package status](https://codecov.io/gh/phil65/mcp-server-llmling/branch/main/graph/badge.svg)](https://codecov.io/gh/phil65/mcp-server-llmling/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyUp](https://pyup.io/repos/github/phil65/mcp-server-llmling/shield.svg)](https://pyup.io/repos/github/phil65/mcp-server-llmling/)
 
 [Read the documentation!](https://phil65.github.io/mcp-server-llmling/)
