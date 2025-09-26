@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections.abc import Sequence  # noqa: TC003
 from typing import TYPE_CHECKING, Any, Literal
 
-from fastapi import HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import HTTPException, WebSocket, WebSocketDisconnect  # noqa: TC002
 from llmling.config.models import (
-    BaseResource,
+    BaseResource,  # noqa: TC002
     CallableResource,
     CLIResource,
     PathResource,
-    Resource,
+    Resource,  # noqa: TC002
     SourceResource,
     TextResource,
     ToolConfig,
@@ -18,12 +18,12 @@ from py2openai import OpenAIFunctionTool  # noqa: TC002
 
 from mcp_server_llmling.injection.models import (
     BulkUpdateResponse,
-    CodeToolRequest,
+    CodeToolRequest,  # noqa: TC001
     ComponentResponse,
     ConfigUpdateRequest,
     ErrorResponse,
-    ImportToolRequest,
-    PackageInstallRequest,
+    ImportToolRequest,  # noqa: TC001
+    PackageInstallRequest,  # noqa: TC001
     PackageInstallResponse,
     SuccessResponse,
     WebSocketMessage,

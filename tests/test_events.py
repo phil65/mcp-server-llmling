@@ -62,7 +62,9 @@ async def test_resource_notifications(server: LLMLingServer) -> None:
     assert server.notify_resource_list_changed.call_count == 1
 
     # Test modification
-    server.runtime._resource_registry["test"] = TextResource(content="modified")
+    server.runtime._resource_registry["test"] = TextResource(
+        content="modified", name="test"
+    )
     await asyncio.sleep(0)
     assert server.notify_resource_change.call_count == 1
 
@@ -83,5 +85,5 @@ async def test_notification_error_handling(server: LLMLingServer) -> None:
     server.notify_resource_list_changed = Mock(side_effect=failing_notify)
 
     # Should not raise
-    server.runtime._resource_registry["test"] = TextResource(content="test")
+    server.runtime._resource_registry["test"] = TextResource(content="test", name="test")
     await asyncio.sleep(0)

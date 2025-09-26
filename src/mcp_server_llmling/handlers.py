@@ -166,8 +166,9 @@ def register_handlers(llm_server: LLMLingServer) -> None:
 
     @llm_server.server.completion()
     async def handle_completion(
-        ref: types.PromptReference | types.ResourceReference,
+        ref: types.PromptReference | types.ResourceTemplateReference,
         argument: types.CompletionArgument,
+        _context: types.CompletionContext | None,
     ) -> types.Completion:
         """Handle completion requests."""
         try:
@@ -178,7 +179,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
                         argument_name=argument.name,
                         prompt_name=ref.name,
                     )
-                case types.ResourceReference():
+                case types.ResourceTemplateReference():
                     values = await llm_server.runtime.get_resource_completions(
                         uri=ref.uri,
                         current_value=argument.value,
@@ -202,10 +203,11 @@ def register_handlers(llm_server: LLMLingServer) -> None:
         token: str | int,
         progress: float,
         total: float | None,
+        message: str | None,
     ) -> None:
         """Handle progress notifications from client."""
-        msg = "Progress notification: %s %.1f/%.1f"
-        logger.debug(msg, token, progress, total or 0.0)
+        msg = "Progress notification: %s %.1f/%.1f (%s"
+        logger.debug(msg, token, progress, total or 0.0, message or "")
 
     @llm_server.server.subscribe_resource()
     async def handle_subscribe(uri: AnyUrl) -> None:

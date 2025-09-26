@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence  # noqa: F401
 from typing import Any, Literal
 
-from llmling.config.models import BaseResource, ToolConfig  # noqa: TC002
+from llmling.config.models import BaseResource, ToolConfig
 from pydantic import BaseModel, ConfigDict, Field
 
 from mcp_server_llmling.log import get_logger

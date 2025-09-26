@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import defaultdict
 import contextlib
-from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, Literal, Self
 
 from fastmcp import FastMCP
@@ -22,6 +22,7 @@ from mcp_server_llmling.server_federation import FederatedServers, ServerFederat
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable, Coroutine
+    from contextlib import AbstractAsyncContextManager
     import os
 
     from fastmcp.server.auth import AuthProvider
