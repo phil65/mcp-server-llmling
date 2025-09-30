@@ -41,14 +41,14 @@ def config() -> Config:
 
 
 @pytest.fixture
-async def runtime(config: Config) -> AsyncGenerator[RuntimeConfig, None]:
+async def runtime(config: Config) -> AsyncGenerator[RuntimeConfig]:
     """Create a runtime config."""
     async with RuntimeConfig.from_config(config) as runtime:
         yield runtime
 
 
 @pytest.fixture
-async def server(runtime: RuntimeConfig) -> AsyncGenerator[LLMLingServer, None]:
+async def server(runtime: RuntimeConfig) -> AsyncGenerator[LLMLingServer]:
     """Create server instance."""
     # Random port
     server = LLMLingServer(runtime, enable_injection=True, injection_port=0)
@@ -62,7 +62,7 @@ async def server(runtime: RuntimeConfig) -> AsyncGenerator[LLMLingServer, None]:
 
 
 @pytest.fixture
-async def client(server: LLMLingServer) -> AsyncGenerator[httpx.AsyncClient, None]:
+async def client(server: LLMLingServer) -> AsyncGenerator[httpx.AsyncClient]:
     """Create HTTP client connected to injection server."""
     assert server.injection_server
     base_url = f"http://localhost:{server.injection_server.port}"
