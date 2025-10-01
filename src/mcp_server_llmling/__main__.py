@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-from enum import Enum
 import logging
 import os
 from pathlib import Path
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from llmling import RuntimeConfig, config_resources
 import typer as t
 
 from mcp_server_llmling import __version__, constants
 from mcp_server_llmling.log import get_logger
-from mcp_server_llmling.server import LLMLingServer
+from mcp_server_llmling.server import LLMLingServer, TransportType
 
 
 if TYPE_CHECKING:
@@ -38,7 +37,7 @@ cli.add_typer(list_cli, name="list")
 
 # Common option definitions
 CONFIG_HELP = "Path to LLMling configuration file"
-TRANSPORT_HELP = "Transport type (stdi, sse, streamable-http)"
+TRANSPORT_HELP = "Transport type"
 HOST_HELP = "Host address for SSE transport"
 PORT_HELP = "Port number for SSE transport"
 INJ_PORT_HELP = "Port for config injection server"
@@ -60,21 +59,8 @@ QUIET_CMDS = "-q", "--quiet"
 INSTRUCTIONS_CMDS = "-i", "--instructions"
 
 
-class LogLevel(str, Enum):
-    """Valid logging levels."""
-
-    DEBUG = "debug"
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-
-
-def validate_transport(value: str) -> str:
-    """Validate transport type."""
-    if value not in {"stdio", "streamable-http", "sse"}:
-        msg = f"Invalid transport: {value}. Must be 'stdio', 'streamable-http' or 'sse'"
-        raise t.BadParameter(msg)
-    return value
+# Type alias for valid logging levels
+LogLevel = Literal["debug", "info", "warning", "error"]
 
 
 def version_callback(value: bool) -> None:
@@ -102,11 +88,10 @@ def quiet_callback(ctx: t.Context, _param: t.CallbackParam, value: bool) -> bool
 def start(
     # ""..."" for required
     config_path: str = t.Argument(config_resources.TEST_CONFIG, help=CONFIG_HELP),
-    transport: str = t.Option(
+    transport: TransportType = t.Option(
         "stdio",
         *TRANSPORT_CMDS,
         help=TRANSPORT_HELP,
-        callback=validate_transport,
     ),
     host: str = t.Option("localhost", *HOST_CMDS, help=HOST_HELP),
     port: int = t.Option(3001, *PORT_CMDS, help=PORT_HELP),
@@ -115,7 +100,7 @@ def start(
     server_name: str = t.Option(constants.SERVER_NAME, *NAME_CMDS, help=NAME_HELP),
     instructions: str | None = t.Option(None, *INSTRUCTIONS_CMDS, help=INSTRUCTIONS_HELP),
     log_level: LogLevel = t.Option(  # noqa: B008
-        LogLevel.INFO,
+        "info",
         "-l",
         "--log-level",
         case_sensitive=False,
@@ -135,7 +120,7 @@ def start(
 ) -> None:
     """Start the MCP protocol server."""
     try:
-        logging.getLogger().setLevel(log_level.value.upper())
+        logging.getLogger().setLevel(log_level.upper())
         transport_options: dict[str, Any] = {}
         if transport in {"sse", "streamable-http"}:
             transport_options = {"host": host, "port": port}
