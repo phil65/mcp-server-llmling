@@ -17,7 +17,6 @@ from pydantic import AnyUrl
 from mcp_server_llmling import constants
 from mcp_server_llmling.handlers import register_handlers
 from mcp_server_llmling.log import get_logger
-from mcp_server_llmling.server_federation import FederatedServers, ServerFederation
 
 
 if TYPE_CHECKING:
@@ -92,7 +91,7 @@ class LLMLingServer:
 
         self._subscriptions: defaultdict[str, set[mcp.ServerSession]] = defaultdict(set)
         self._tasks: set[asyncio.Task[Any]] = set()
-        self.federation = ServerFederation()
+
         self.transport: TransportType = transport
         # Create MCP server
         self.fastmcp = FastMCP(
@@ -201,12 +200,6 @@ class LLMLingServer:
     async def start(self, *, raise_exceptions: bool = False) -> None:
         """Start the server."""
         try:
-            if (extra := self.runtime._config.model_extra) and (
-                external_servers := extra.get("external_servers")
-            ):
-                config = FederatedServers(external_servers=external_servers)
-                await self.federation.connect_servers(config)
-
             # Start injection server in a separate task if enabled
             injection_task = None
             if self.injection_server:
@@ -237,7 +230,7 @@ class LLMLingServer:
                 await self.injection_server.stop()
 
             # await self.server.shutdown()
-            await self.federation.close()
+
             # Cancel all pending tasks
             if self._tasks:
                 for task in self._tasks:
