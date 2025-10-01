@@ -14,7 +14,7 @@ import typer as t
 
 from mcp_server_llmling import __version__, constants
 from mcp_server_llmling.log import get_logger
-from mcp_server_llmling.server import LLMLingServer, TransportType
+from mcp_server_llmling.server import LLMLingServer, TransportType  # noqa: TC001
 
 
 if TYPE_CHECKING:
@@ -88,7 +88,7 @@ def quiet_callback(ctx: t.Context, _param: t.CallbackParam, value: bool) -> bool
 def start(
     # ""..."" for required
     config_path: str = t.Argument(config_resources.TEST_CONFIG, help=CONFIG_HELP),
-    transport: TransportType = t.Option(
+    transport: TransportType = t.Option(  # noqa: B008
         "stdio",
         *TRANSPORT_CMDS,
         help=TRANSPORT_HELP,
