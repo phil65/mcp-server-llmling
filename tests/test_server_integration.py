@@ -11,7 +11,6 @@ from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
     platform.system() in ("Linux", "Windows"),
     reason="Timeout issues on Ubuntu/Linux and Windows",
 )
-@pytest.mark.asyncio
 async def test_resource_to_tool_workflow() -> None:
     """Test loading a resource and using it with a tool."""
     client = MCPInProcSession()

@@ -35,7 +35,6 @@ def server() -> LLMLingServer:
     return server
 
 
-@pytest.mark.asyncio
 async def test_prompt_notifications(server: LLMLingServer) -> None:
     """Test that prompt registry changes trigger notifications."""
     server.runtime._prompt_registry["test"] = Mock()
@@ -43,7 +42,6 @@ async def test_prompt_notifications(server: LLMLingServer) -> None:
     server.notify_prompt_list_changed.assert_called_once()
 
 
-@pytest.mark.asyncio
 async def test_tool_notifications(server: LLMLingServer) -> None:
     """Test that tool registry changes trigger notifications."""
     server.runtime._tool_registry["test"] = Mock()
@@ -51,7 +49,6 @@ async def test_tool_notifications(server: LLMLingServer) -> None:
     server.notify_tool_list_changed.assert_called_once()
 
 
-@pytest.mark.asyncio
 async def test_resource_notifications(server: LLMLingServer) -> None:
     """Test that resource registry changes trigger notifications."""
     resource = TextResource(content="test")
@@ -74,7 +71,6 @@ async def test_resource_notifications(server: LLMLingServer) -> None:
     assert server.notify_resource_list_changed.call_count == 2  # noqa: PLR2004
 
 
-@pytest.mark.asyncio
 async def test_notification_error_handling(server: LLMLingServer) -> None:
     """Test that notification errors are handled gracefully."""
 

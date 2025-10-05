@@ -3,7 +3,6 @@ from llmling.prompts.models import DynamicPrompt
 import pytest
 
 
-@pytest.mark.asyncio
 async def test_zed_function_wrapping():
     """Test that function wrapping properly handles multiple arguments."""
 
@@ -45,7 +44,6 @@ async def test_zed_function_wrapping():
         assert "Opt2: True" in result
 
 
-@pytest.mark.asyncio
 async def test_zed_wrapping_conditions():
     """Test that Zed wrapping only happens for multi-parameter functions."""
     # Create prompts for each

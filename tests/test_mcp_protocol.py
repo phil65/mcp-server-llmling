@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
 
 
-@pytest.mark.asyncio
 async def test_mcp_resource_operations(configured_client: MCPInProcSession) -> None:
     """Test MCP resource operations."""
     # List resources
@@ -35,7 +34,6 @@ async def test_mcp_resource_operations(configured_client: MCPInProcSession) -> N
     assert content["mimeType"] == "text/plain"
 
 
-@pytest.mark.asyncio
 async def test_mcp_tool_operations(configured_client: MCPInProcSession) -> None:
     """Test MCP tool operations."""
     # List tools
@@ -49,7 +47,6 @@ async def test_mcp_tool_operations(configured_client: MCPInProcSession) -> None:
     assert result["content"][0]["text"] == "testtest"
 
 
-@pytest.mark.asyncio
 async def test_mcp_prompt_operations(configured_client: MCPInProcSession) -> None:
     """Test MCP prompt operations."""
     # List prompts
@@ -65,7 +62,6 @@ async def test_mcp_prompt_operations(configured_client: MCPInProcSession) -> Non
     assert result["messages"][0]["content"]["text"] == "test"
 
 
-@pytest.mark.asyncio
 async def test_mcp_error_handling(configured_client: MCPInProcSession) -> None:
     """Test MCP error response format."""
     # Test with invalid tool
@@ -82,7 +78,6 @@ async def test_mcp_error_handling(configured_client: MCPInProcSession) -> None:
     assert "not found" in str(exc_info.value).lower()
 
 
-@pytest.mark.asyncio
 async def test_mcp_handshake(configured_client: MCPInProcSession) -> None:
     """Test MCP protocol handshake."""
     # Do another handshake to explicitly test it
@@ -103,7 +98,6 @@ async def test_mcp_handshake(configured_client: MCPInProcSession) -> None:
     assert "logging" in capabilities
 
 
-@pytest.mark.asyncio
 async def test_mcp_streaming(configured_client: MCPInProcSession) -> None:
     """Test MCP streaming operations."""
     # Call tool with progress tracking

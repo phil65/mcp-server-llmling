@@ -31,7 +31,6 @@ PARAMS = {
     platform.system() in ("Linux", "Windows"),
     reason="Timeout issues on Ubuntu/Linux and Windows",
 )
-@pytest.mark.asyncio
 async def test_server_lifecycle_handshake_client(client: MCPInProcSession) -> None:
     """Test server lifecycle using MCPInProcSession."""
     try:
@@ -85,7 +84,6 @@ async def test_server_lifecycle_test_session():
         assert isinstance(prompts.prompts, list)
 
 
-@pytest.mark.asyncio
 async def test_server_lifecycle_direct(
     runtime_config: RuntimeConfig,
     server: LLMLingServer,
@@ -111,7 +109,6 @@ async def test_server_lifecycle_direct(
         await server.shutdown()
 
 
-@pytest.mark.asyncio
 async def test_server_lifecycle_subprocess() -> None:
     """Test server lifecycle using raw subprocess."""
     process = await asyncio.create_subprocess_exec(

@@ -71,7 +71,6 @@ async def client(server: LLMLingServer) -> AsyncGenerator[httpx.AsyncClient]:
         yield client
 
 
-@pytest.mark.asyncio
 async def test_list_components(client: httpx.AsyncClient) -> None:
     """Test listing all components."""
     response = await client.get("/components")
@@ -84,7 +83,6 @@ async def test_list_components(client: httpx.AsyncClient) -> None:
     assert "test_tool" in data["tools"]
 
 
-@pytest.mark.asyncio
 async def test_add_resource(client: httpx.AsyncClient) -> None:
     """Test adding a resource."""
     payload = {"type": "text", "content": "New content"}
@@ -102,8 +100,7 @@ async def test_add_resource(client: httpx.AsyncClient) -> None:
     assert "new_resource" in resources
 
 
-# @pytest.mark.asyncio
-# async def test_add_invalid_resource(client: httpx.AsyncClient) -> None:
+# # async def test_add_invalid_resource(client: httpx.AsyncClient) -> None:
 #     """Test adding an invalid resource."""
 #     response = await client.post(
 #         "/resources/bad_resource",
@@ -117,7 +114,6 @@ async def test_add_resource(client: httpx.AsyncClient) -> None:
 #     assert response.status_code == STATUS_ERROR
 
 
-@pytest.mark.asyncio
 async def test_bulk_update(client: httpx.AsyncClient) -> None:
     """Test bulk component updates."""
     from llmling.config.models import ToolConfig
@@ -144,7 +140,6 @@ async def test_bulk_update(client: httpx.AsyncClient) -> None:
     assert "bulk_tool" in data["tools"]
 
 
-@pytest.mark.asyncio
 async def test_websocket_communication(server: LLMLingServer) -> None:
     """Test WebSocket updates."""
     assert server.injection_server
@@ -172,7 +167,6 @@ async def test_websocket_communication(server: LLMLingServer) -> None:
         assert response["request_id"] == "test-1"
 
 
-@pytest.mark.asyncio
 async def test_concurrent_updates(client: httpx.AsyncClient) -> None:
     """Test concurrent updates."""
 
