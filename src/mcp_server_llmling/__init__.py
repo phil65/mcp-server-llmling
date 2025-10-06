@@ -1,4 +1,7 @@
-"""mcp-server-llmling: MCP (Model context protocol) server with LLMling backend"""
+"""mcp-server-llmling: main package.
+
+MCP (Model context protocol) server with LLMling backend.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +9,7 @@ from importlib.metadata import version
 
 __version__ = version("mcp-server-llmling")
 __title__ = "mcp-server-llmling"
-__description__ = "MCP (Model context protocol) server with LLMling backend"
+
 __author__ = "Philipp Temminghoff"
 __author_email__ = "philipptemminghoff@googlemail.com"
 __copyright__ = "Copyright (c) 2024 Philipp Temminghoff"
