@@ -13,4 +13,6 @@ from mcp_server_llmling.server import LLMLingServer
 upathtools.register_http_filesystems()
 
 __all__ = [
-    "__version__","LLMLingServer"]
+    "LLMLingServer",
+    "__version__",
+]
