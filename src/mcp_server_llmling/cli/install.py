@@ -66,7 +66,7 @@ def claude(
             raise t.Exit(code=1) from e
 
     try:
-        config = anyenv.load_json(config_file_path.read_text("utf-8"))
+        config = anyenv.load_json(config_file_path.read_text("utf-8"), return_type=dict)
         if "mcpServers" not in config:
             config["mcpServers"] = {}
 
