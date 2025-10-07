@@ -7,18 +7,15 @@ import logging
 import os
 from pathlib import Path
 import sys
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
 from llmling import RuntimeConfig, config_resources
 import typer as t
 
 from mcp_server_llmling import __version__, constants
 from mcp_server_llmling.log import get_logger
-from mcp_server_llmling.server import LLMLingServer, TransportType  # noqa: TC001
+from mcp_server_llmling.server import LLMLingServer, TransportType
 
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 logger = get_logger(__name__)
 
