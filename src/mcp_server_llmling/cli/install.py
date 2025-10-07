@@ -20,10 +20,10 @@ def get_claude_config_path() -> Path | None:
     """Get the Claude config directory based on platform."""
     match sys.platform:
         case "win32":
-            path = Path(Path.home(), "AppData", "Roaming", "Claude")
+            path = Path.home() / "AppData" / "Roaming" / "Claude"
             return path if path.exists() else None
         case "darwin":
-            path = Path(Path.home(), "Library", "Application Support", "Claude")
+            path = Path.home() / "Library" / "Application Support" / "Claude"
             return path if path.exists() else None
         case _:
             return None
