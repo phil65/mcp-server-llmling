@@ -26,6 +26,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
+  "anyenv>=0.5.0",
   "fastapi[standard]>=0.115.6",
   "fastmcp>=2.3.4",
   "llmling>=1.0.0",

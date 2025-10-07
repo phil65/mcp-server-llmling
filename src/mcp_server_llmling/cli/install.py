@@ -45,6 +45,8 @@ def claude(
     force: bool = t.Option(False, help="Overwrite existing server if present"),
 ) -> None:
     """Install MCP server in Claude Desktop."""
+    import anyenv
+
     config_dir = get_claude_config_path()
     if not config_dir:
         msg = (
@@ -64,7 +66,7 @@ def claude(
             raise t.Exit(code=1) from e
 
     try:
-        config = json.loads(config_file_path.read_text())
+        config = anyenv.load_json(config_file_path.read_text("utf-8"))
         if "mcpServers" not in config:
             config["mcpServers"] = {}
 
@@ -89,7 +91,7 @@ def claude(
             return
 
         config["mcpServers"][server_name] = server_config
-        config_file_path.write_text(json.dumps(config, indent=2))
+        config_file_path.write_text(anyenv.dump_json(config, indent=True))
         t.echo(
             f"Successfully installed {server_name!r} server in Claude Desktop config.",
         )

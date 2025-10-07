@@ -7,6 +7,8 @@ import os
 import subprocess
 from typing import Any
 
+import anyenv
+
 from mcp_server_llmling import constants
 from mcp_server_llmling.log import get_logger
 
@@ -89,9 +91,9 @@ class MCPInProcSession:
                 raise RuntimeError(msg)
 
             try:
-                response = json.loads(line.decode())
+                response = anyenv.load_json(line.decode())
                 logger.debug("Received: %s", response)
-            except json.JSONDecodeError:
+            except anyenv.JsonLoadError:
                 # Skip non-JSON lines
                 logger.debug("Server output: %s", line.decode().strip())
                 continue
