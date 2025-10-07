@@ -91,7 +91,7 @@ class MCPInProcSession:
                 raise RuntimeError(msg)
 
             try:
-                response = anyenv.load_json(line.decode())
+                response = anyenv.load_json(line.decode(), return_type=dict)
                 logger.debug("Received: %s", response)
             except anyenv.JsonLoadError:
                 # Skip non-JSON lines
