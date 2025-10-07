@@ -67,9 +67,7 @@ def claude(
 
     try:
         config = anyenv.load_json(config_file_path.read_text("utf-8"), return_type=dict)
-        if "mcpServers" not in config:
-            config["mcpServers"] = {}
-
+        config.setdefault("mcpServers", {})
         server_name = "llmling"
         if server_name in config["mcpServers"] and not force and not dry_run:
             msg = f"Server '{server_name}' already exists. Use --force to overwrite."
