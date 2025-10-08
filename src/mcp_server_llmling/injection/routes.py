@@ -14,7 +14,7 @@ from llmling.config.models import (
     TextResource,
     ToolConfig,
 )
-from py2openai import OpenAIFunctionTool  # noqa: TC002
+from schemez import OpenAIFunctionTool  # noqa: TC002
 
 from mcp_server_llmling.injection.models import (
     BulkUpdateResponse,
