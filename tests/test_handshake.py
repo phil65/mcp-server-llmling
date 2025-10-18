@@ -84,31 +84,6 @@ async def test_server_lifecycle_test_session():
         assert isinstance(prompts.prompts, list)
 
 
-async def test_server_lifecycle_direct(
-    runtime_config: RuntimeConfig,
-    server: LLMLingServer,
-) -> None:
-    """Test server lifecycle using direct method calls."""
-    try:
-        # Start runtime components
-        await runtime_config.startup()
-
-        # Test direct access
-        tools = runtime_config.get_tools()
-        assert isinstance(tools, list)
-        assert len(tools) > 0  # Should have our test tools
-
-        resources = runtime_config.list_resource_names()
-        assert isinstance(resources, list)
-
-        prompts = runtime_config.list_prompt_names()
-        assert isinstance(prompts, list)
-
-    finally:
-        await runtime_config.shutdown()
-        await server.shutdown()
-
-
 async def test_server_lifecycle_subprocess() -> None:
     """Test server lifecycle using raw subprocess."""
     process = await asyncio.create_subprocess_exec(

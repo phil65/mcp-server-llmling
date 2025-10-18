@@ -56,39 +56,31 @@ class HTTPMCPClient:
         """
         self.config = config
         self._session: ClientSession | None = None
-        self._context_manager: Any = None
+        self._context_manager = streamablehttp_client(
+            url=self.config.server_url,
+            headers=self.config.headers,
+            timeout=self.config.timeout,
+        )
 
     async def start(self) -> None:
         """Connect to server and perform handshake."""
         try:
             # Connect via streamablehttp_client and get streams
-            self._context_manager = streamablehttp_client(
-                url=self.config.server_url,
-                headers=self.config.headers,
-                timeout=self.config.timeout,
-            )
 
             streams_and_callback = await self._context_manager.__aenter__()
             read_stream, write_stream, _get_session_id = streams_and_callback
 
-            # Create session
             self._session = ClientSession(read_stream, write_stream)
             await self._session.__aenter__()
-
-            # Initialize session
             result = await self._session.initialize()
             msg = "Connected to MCP server at %s (protocol version %s)"
             logger.info(msg, self.config.server_url, result.protocolVersion)
         except Exception as exc:
             # Clean up on failure
-            if self._context_manager:
-                try:
-                    await self._context_manager.__aexit__(
-                        type(exc), exc, exc.__traceback__
-                    )
-                except Exception:
-                    logger.exception("Error during cleanup after connection failure")
-                self._context_manager = None
+            try:
+                await self._context_manager.__aexit__(type(exc), exc, exc.__traceback__)
+            except Exception:
+                logger.exception("Error during cleanup after connection failure")
             msg = "Failed to connect to server"
             raise McpConnectionError(msg) from exc
 
@@ -102,13 +94,10 @@ class HTTPMCPClient:
             finally:
                 self._session = None
 
-        if self._context_manager:
-            try:
-                await self._context_manager.__aexit__(None, None, None)
-            except Exception:
-                logger.exception("Error closing context manager")
-            finally:
-                self._context_manager = None
+        try:
+            await self._context_manager.__aexit__(None, None, None)
+        except Exception:
+            logger.exception("Error closing context manager")
 
     @property
     def session(self) -> ClientSession:
