@@ -111,7 +111,7 @@ class LLMLingServer:
 
             self.injection_server = ConfigInjectionServer(self, port=injection_port)
 
-        self._setup_handlers()
+        register_handlers(self)
         self._setup_events()
 
     @classmethod
@@ -166,10 +166,6 @@ class LLMLingServer:
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
         return task
-
-    def _setup_handlers(self) -> None:
-        """Register MCP protocol handlers."""
-        register_handlers(self)
 
     def _setup_events(self) -> None:
         """Set up registry event handlers."""
