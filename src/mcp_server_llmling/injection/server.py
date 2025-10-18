@@ -5,6 +5,7 @@ import contextlib
 from typing import TYPE_CHECKING, Any, Literal
 
 from fastapi import FastAPI
+import logfire
 
 from mcp_server_llmling.injection import routes
 from mcp_server_llmling.injection.utils import find_free_port
@@ -76,7 +77,7 @@ TAGS = [
 
 def create_app() -> FastAPI:
     """Create FastAPI application for config injection."""
-    return FastAPI(
+    app = FastAPI(
         title="LLMling Config Injection API",
         description=DESCRIPTION,
         version="1.0.0",
@@ -85,6 +86,9 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
         openapi_url="/openapi.json",
     )
+    logfire.instrument_fastapi(app)
+
+    return app
 
 
 class ConfigInjectionServer:
