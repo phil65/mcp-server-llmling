@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 from fastmcp import FastMCP
 from llmling.config.manager import ConfigManager
 from llmling.config.runtime import RuntimeConfig
-from mcp.server import NotificationOptions
 from pydantic import AnyUrl
 
 from mcp_server_llmling import constants
@@ -105,13 +104,7 @@ class LLMLingServer:
             tool_serializer=tool_serializer,
         )
         self.server = self.fastmcp._mcp_server
-        self.server.notification_options = NotificationOptions(
-            prompts_changed=True,
-            resources_changed=True,
-            tools_changed=True,
-        )
 
-        # Setup injection if enabled
         self.injection_server = None
         if enable_injection and transport == "stdio":
             from mcp_server_llmling.injection import ConfigInjectionServer
