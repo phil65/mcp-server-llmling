@@ -22,7 +22,6 @@ from mcp_server_llmling.server_federation import FederatedServers, ServerFederat
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable, Coroutine
     from contextlib import AbstractAsyncContextManager
-    import os
 
     from fastmcp.server.auth import AuthProvider
     from llmling.config.models import BaseResource
@@ -31,6 +30,7 @@ if TYPE_CHECKING:
     import mcp
     from mcp import Implementation
     from mcp.server.lowlevel.server import LifespanResultT
+    from upath import JoinablePathLike
 
 logger = get_logger(__name__)
 
@@ -118,7 +118,7 @@ class LLMLingServer:
     @asynccontextmanager
     async def from_config_file(
         cls,
-        config_path: str | os.PathLike[str],
+        config_path: JoinablePathLike,
         *,
         transport: TransportType = "stdio",
         name: str = constants.SERVER_NAME,
