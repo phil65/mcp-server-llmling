@@ -31,7 +31,7 @@ dependencies = [
   "fastapi[standard]>=0.115.6",
   "fastmcp>=2.3.4",
   "llmling>=1.0.0",
-  "logfire>=2.6.2",
+  "logfire[fastapi]>=2.6.2",
   "mcp>=1.1.0",
   "pydantic",
   "schemez>=1.0.0",
