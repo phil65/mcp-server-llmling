@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from mcp.types import AnyUrl
 import pytest
+from pydantic import AnyUrl
 
 from mcp_server_llmling.conversions import from_mcp_uri, to_mcp_uri
 
