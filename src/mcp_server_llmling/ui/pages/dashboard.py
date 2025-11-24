@@ -62,11 +62,7 @@ class DashboardPage:
 
     def refresh_stats(self) -> None:
         """Refresh the statistics."""
-        self.resources_count.text = str(
-            len(self.server.llm_server.runtime.list_resource_names())
-        )
+        self.resources_count.text = str(len(self.server.llm_server.runtime.list_resource_names()))
         self.tools_count.text = str(len(self.server.llm_server.runtime.list_tool_names()))
-        self.prompts_count.text = str(
-            len(self.server.llm_server.runtime.list_prompt_names())
-        )
+        self.prompts_count.text = str(len(self.server.llm_server.runtime.list_prompt_names()))
         ui.notify("Statistics updated")

@@ -130,9 +130,7 @@ class MCPInProcSession:
             logger.exception("Timeout waiting for response to: %s", method)
             raise
 
-    async def send_notification(
-        self, method: str, params: dict[str, Any] | None = None
-    ) -> None:
+    async def send_notification(self, method: str, params: dict[str, Any] | None = None) -> None:
         """Send JSON-RPC notification."""
         if not self.process or not self.process.stdin:
             msg = "Server not started"

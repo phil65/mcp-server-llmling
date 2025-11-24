@@ -37,9 +37,7 @@ def claude(
         help="Path to LLMling config file",
     ),
     injection: bool = t.Option(False, help="Enable config injection server"),
-    injection_port: int = t.Option(
-        8765, help="Port for injection server", show_default=True
-    ),
+    injection_port: int = t.Option(8765, help="Port for injection server", show_default=True),
     version: str = t.Option("latest", help="Package version to use"),
     dry_run: bool = t.Option(False, help="Show changes without applying them"),
     force: bool = t.Option(False, help="Overwrite existing server if present"),

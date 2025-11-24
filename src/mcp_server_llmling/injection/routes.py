@@ -95,9 +95,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                             msg = f"Unknown resource type: {resource_type}"
                             raise ValueError(msg)  # noqa: TRY301
 
-                    server.llm_server.runtime.register_resource(
-                        name, validated, replace=True
-                    )
+                    server.llm_server.runtime.register_resource(name, validated, replace=True)
                     logger.debug("Resource %s registered", name)
 
             # Update tools
@@ -106,9 +104,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                 for name, tool in tools.items():
                     logger.debug("Processing tool: %s", name)
                     tool = ToolConfig.model_validate(tool)
-                    server.llm_server.runtime._tool_registry.register(
-                        name, tool, replace=True
-                    )
+                    server.llm_server.runtime._tool_registry.register(name, tool, replace=True)
                     logger.debug("Tool %s registered", name)
             msg = "Config injected successfully"
             name = "yaml_injection"
@@ -221,9 +217,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
             msg = f"Resource {name} removed"
             return SuccessResponse(message=msg, component_type="resource", name=name)
         except KeyError as e:
-            raise HTTPException(
-                status_code=404, detail=f"Resource {name} not found"
-            ) from e
+            raise HTTPException(status_code=404, detail=f"Resource {name} not found") from e
 
     # Tool endpoints
     @server.app.post(
@@ -276,13 +270,10 @@ def setup_routes(server: ConfigInjectionServer) -> None:
         """List all tools with their OpenAPI schemas."""
         try:
             return {
-                name: tool.get_schema()
-                for name, tool in server.llm_server.runtime.tools.items()
+                name: tool.get_schema() for name, tool in server.llm_server.runtime.tools.items()
             }
         except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Failed to get tool schemas: {e}"
-            ) from e
+            raise HTTPException(status_code=500, detail=f"Failed to get tool schemas: {e}") from e
 
     @server.app.delete(
         "/tools/{name}",
@@ -349,15 +340,11 @@ def setup_routes(server: ConfigInjectionServer) -> None:
                         name, resource, replace=request.replace_existing
                     )
                     msg = f"Resource {name} registered"
-                    res = SuccessResponse(
-                        message=msg, component_type="resource", name=name
-                    )
+                    res = SuccessResponse(message=msg, component_type="resource", name=name)
                     responses.append(res)
                     summary["success"] += 1
                 except Exception as e:  # noqa: BLE001
-                    er = ErrorResponse(
-                        message=str(e), component_type="resource", name=name
-                    )
+                    er = ErrorResponse(message=str(e), component_type="resource", name=name)
                     responses.append(er)
                     summary["error"] += 1
 
@@ -541,9 +528,7 @@ def setup_routes(server: ConfigInjectionServer) -> None:
             400: {"description": "Invalid import path or registration failed"},
         },
     )
-    async def register_imported_tool(
-        name: str, request: ImportToolRequest
-    ) -> ComponentResponse:
+    async def register_imported_tool(name: str, request: ImportToolRequest) -> ComponentResponse:
         """Register a tool from an import path."""
         try:
             await server.llm_server.runtime.register_tool(

@@ -41,9 +41,7 @@ class ToolList:
             rows = [
                 {
                     "name": name,
-                    "import_path": self.server.llm_server.runtime._tool_registry[
-                        name
-                    ].import_path,
+                    "import_path": self.server.llm_server.runtime._tool_registry[name].import_path,
                 }
                 for name in tools
             ]

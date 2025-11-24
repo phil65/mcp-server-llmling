@@ -109,9 +109,7 @@ def start(
         "--zed-mode",
         help="Enable Zed editor compatibility mode",
     ),
-    verbose: bool = t.Option(
-        False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback
-    ),
+    verbose: bool = t.Option(False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback),
     quiet: bool = t.Option(False, *QUIET_CMDS, help=QUIET_HELP, callback=quiet_callback),
     version: bool = t.Option(None, "--version", callback=version_callback, is_eager=True),  # type: ignore
 ) -> None:
@@ -143,9 +141,7 @@ def start(
 
 @cli.command()
 def info(
-    verbose: bool = t.Option(
-        False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback
-    ),
+    verbose: bool = t.Option(False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback),
 ):
     """Show server information and capabilities."""
     info_data = {
@@ -169,9 +165,7 @@ def inject(
     ),
     host: str = t.Option("localhost", *HOST_CMDS, help=HOST_HELP),
     port: int = t.Option(8765, *PORT_CMDS, help=PORT_HELP),
-    verbose: bool = t.Option(
-        False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback
-    ),
+    verbose: bool = t.Option(False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback),
 ):
     """Inject configuration into a running server."""
     import httpx

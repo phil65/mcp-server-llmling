@@ -59,9 +59,7 @@ async def test_resource_notifications(server: LLMLingServer) -> None:
     assert server.notify_resource_list_changed.call_count == 1
 
     # Test modification
-    server.runtime._resource_registry["test"] = TextResource(
-        content="modified", name="test"
-    )
+    server.runtime._resource_registry["test"] = TextResource(content="modified", name="test")
     await asyncio.sleep(0)
     assert server.notify_resource_change.call_count == 1
 

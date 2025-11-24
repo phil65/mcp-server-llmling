@@ -131,14 +131,10 @@ class ResourceList:
 
             self.preview_content.clear()
             with self.preview_content:
-                if resource.metadata.mime_type and resource.metadata.mime_type.startswith(
-                    "image/"
-                ):
+                if resource.metadata.mime_type and resource.metadata.mime_type.startswith("image/"):
                     ui.image(resource.content)
                 else:
-                    ui.textarea(value=str(resource.content)).props("readonly").classes(
-                        "w-full"
-                    )
+                    ui.textarea(value=str(resource.content)).props("readonly").classes("w-full")
 
             self.preview_dialog.open()
 

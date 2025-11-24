@@ -34,10 +34,7 @@ class ResourcesPage:
             # Simple table showing resources
             resources = self.server.llm_server.runtime.list_resource_names()
             registry = self.server.llm_server.runtime._resource_registry
-            rows = [
-                {"name": name, "type": registry[name].__class__.__name__}
-                for name in resources
-            ]
+            rows = [{"name": name, "type": registry[name].__class__.__name__} for name in resources]
 
             columns = [
                 {"name": "name", "label": "Name", "field": "name"},

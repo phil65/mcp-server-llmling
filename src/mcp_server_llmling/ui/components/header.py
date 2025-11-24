@@ -24,9 +24,7 @@ class Header:
 
     def render(self) -> None:
         """Render the header component."""
-        with ui.header().classes(
-            "flex justify-between items-center p-4 bg-blue-600 text-white"
-        ):
+        with ui.header().classes("flex justify-between items-center p-4 bg-blue-600 text-white"):
             ui.label("LLMling Config").classes("text-2xl")
 
             with ui.row().classes("gap-4"):
@@ -36,7 +34,5 @@ class Header:
 
             # Right side status
             with ui.row().classes("gap-2 items-center"):
-                ui.icon(
-                    "circle", color="green" if self.server.llm_server.runtime else "red"
-                )
+                ui.icon("circle", color="green" if self.server.llm_server.runtime else "red")
                 ui.label("Server Status")

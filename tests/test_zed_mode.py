@@ -33,9 +33,7 @@ async def test_zed_function_wrapping():
         wrapped = runtime._prompt_registry["test"]
 
         # Test that it accepts single string input
-        messages = await wrapped.format({
-            "input": "main_value :: opt1=custom | opt2=true"
-        })
+        messages = await wrapped.format({"input": "main_value :: opt1=custom | opt2=true"})
 
         # format returns a list of PromptMessages, so we need to get the content
         result = messages[1].get_text_content()  # user message is second
@@ -99,9 +97,7 @@ async def test_zed_wrapping_conditions():
         assert zero_prompt.import_path == original_paths["zero"]  # type: ignore
 
         # Test that multi-arg prompt works with Zed format
-        messages = await multi_prompt.format({
-            "input": "main_value :: opt1=custom | opt2=true"
-        })
+        messages = await multi_prompt.format({"input": "main_value :: opt1=custom | opt2=true"})
         result = messages[1].get_text_content()
         assert "Main: main_value" in result
         assert "Opt1: custom" in result

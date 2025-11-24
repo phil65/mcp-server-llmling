@@ -115,9 +115,7 @@ def test_config() -> Config:
     msgs = [PromptMessage(role="system", content="test")]
     prompt = StaticPrompt(name="test", description="test", messages=msgs)
     resource = TextResource(content="Test content", description="Test resource")
-    tool_cfg = ToolConfig(
-        import_path=EXAMPLE_TOOL, name="example", description="Test tool"
-    )
+    tool_cfg = ToolConfig(import_path=EXAMPLE_TOOL, name="example", description="Test tool")
     return Config(
         version="1.0",
         prompts={"test": prompt},

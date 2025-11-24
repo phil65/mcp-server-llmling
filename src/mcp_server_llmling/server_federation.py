@@ -78,9 +78,7 @@ class ServerFederation:
                 match server_cfg:
                     case URLServerConfig():
                         if server_cfg.transport == "http":
-                            client = HTTPMCPClient(
-                                HTTPClientConfig(server_url=server_cfg.url)
-                            )
+                            client = HTTPMCPClient(HTTPClientConfig(server_url=server_cfg.url))
                         else:
                             msg = f"Unsupported transport type: {server_cfg.transport}"
                             raise ValueError(msg)  # noqa: TRY301

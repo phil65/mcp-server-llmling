@@ -33,9 +33,7 @@ def create_ui_app(server: ConfigInjectionServer) -> None:
         with ui.card().classes("w-full"):
             ui.label("LLMling Configuration Manager").classes("text-2xl")
             with ui.row():
-                ui.label(
-                    f"Resources: {len(server.llm_server.runtime.list_resource_names())}"
-                )
+                ui.label(f"Resources: {len(server.llm_server.runtime.list_resource_names())}")
                 ui.label(f"Tools: {len(server.llm_server.runtime.list_tool_names())}")
                 ui.label(f"Prompts: {len(server.llm_server.runtime.list_prompt_names())}")
 

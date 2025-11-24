@@ -35,9 +35,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
             python_level = constants.MCP_TO_LOGGING[level]
             logger.setLevel(python_level)
             data = f"Log level set to {level}"
-            await llm_server.current_session.send_log_message(
-                level, data, logger=llm_server.name
-            )
+            await llm_server.current_session.send_log_message(level, data, logger=llm_server.name)
         except Exception as exc:
             error_data = mcp.ErrorData(
                 message="Error setting log level",
@@ -84,14 +82,10 @@ def register_handlers(llm_server: LLMLingServer) -> None:
             prompt = llm_server.runtime.get_prompt(name)
             messages = await prompt.format(arguments or {})
             mcp_msgs = [conversions.to_mcp_message(msg) for msg in messages]
-            return types.GetPromptResult(
-                description=prompt.description, messages=mcp_msgs
-            )
+            return types.GetPromptResult(description=prompt.description, messages=mcp_msgs)
         except exceptions.LLMLingError as exc:
             error_msg = str(exc)
-            code = (
-                types.INVALID_PARAMS if "not found" in error_msg else types.INTERNAL_ERROR
-            )
+            code = types.INVALID_PARAMS if "not found" in error_msg else types.INTERNAL_ERROR
             error_data = mcp.ErrorData(code=code, message=error_msg)
             error = mcp.McpError(error_data)
             raise error from exc
@@ -106,9 +100,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
                 mcp_uri = conversions.to_mcp_uri(uri)
                 dsc = llm_server.runtime._config.resources[name].description
                 mime = "text/plain"  # Default, could be made more specific
-                res = types.Resource(
-                    uri=mcp_uri, name=name, description=dsc, mimeType=mime
-                )
+                res = types.Resource(uri=mcp_uri, name=name, description=dsc, mimeType=mime)
                 resources.append(res)
             except Exception:
                 error_msg = "Failed to create resource listing for %r. Config: %r"
@@ -158,9 +150,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
         except Exception as exc:
             error_msg = f"Failed to read resource: {exc}"
             logger.exception(error_msg)
-            error_data = mcp.ErrorData(
-                message=error_msg, code=types.INTERNAL_ERROR, data=exc
-            )
+            error_data = mcp.ErrorData(message=error_msg, code=types.INTERNAL_ERROR, data=exc)
             error = mcp.McpError(error_data)
             raise error from exc
 
