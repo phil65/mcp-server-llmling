@@ -1,3 +1,5 @@
+"""Simplified in-process MCP server-client session using official MCP SDK."""
+
 from __future__ import annotations
 
 import asyncio

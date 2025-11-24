@@ -8,6 +8,7 @@ import urllib.parse
 from mcp import types
 from pydantic import AnyUrl
 
+
 if TYPE_CHECKING:
     from llmling.prompts.models import BasePrompt, PromptMessage, PromptParameter
     from llmling.resources.models import LoadedResource
