@@ -76,7 +76,8 @@ class LLMLingServer:
             tool_serializer: Unused (no longer supported by FastMCP 3)
             lifespan: Lifespan function for server
             auth_server_provider: Auth server provider
-            transport_options: Additional options for transport
+            transport_options: Options for HTTP transports (passed to FastMCP.run_async,
+                e.g. host, port, path)
             enable_injection: Whether to enable config injection
             injection_port: Port for injection server
             zed_mode: Enable Zed editor compatibility mode
@@ -93,6 +94,7 @@ class LLMLingServer:
         self._tasks: set[asyncio.Task[Any]] = set()
         self.federation = ServerFederation()
         self.transport: TransportType = transport
+        self.transport_options: dict[str, Any] = transport_options or {}
         # Create MCP server
         self.fastmcp = FastMCP(
             name,
@@ -209,7 +211,8 @@ class LLMLingServer:
                         raise
 
             # Run main server
-            await self.fastmcp.run_async(transport=self.transport, show_banner=False)
+            options = self.transport_options if self.transport != "stdio" else {}
+            await self.fastmcp.run_async(transport=self.transport, show_banner=False, **options)
 
         finally:
             if injection_task:
