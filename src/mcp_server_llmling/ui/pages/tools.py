@@ -42,6 +42,7 @@ class ToolsPage:
                 current_paths: list[str] = [
                     tool.import_path
                     for tool in self.server.llm_server.runtime._tool_registry.values()
+                    if tool.import_path
                 ]
                 if current_paths:
                     for path in sorted(set(current_paths)):

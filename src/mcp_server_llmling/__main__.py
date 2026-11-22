@@ -23,7 +23,7 @@ cli = t.Typer(
     name="MCP Server",
     help=(
         "🚀 MCP Server CLI interface. Run and manage the MCP protocol server! 🚀\n\n"
-        "Check out https://github.com/your-repo/mcp-server-llmling !"
+        "Check out https://github.com/phil65/mcp-server-llmling !"
     ),
     no_args_is_help=True,
 )
@@ -111,7 +111,7 @@ def start(
     ),
     verbose: bool = t.Option(False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback),
     quiet: bool = t.Option(False, *QUIET_CMDS, help=QUIET_HELP, callback=quiet_callback),
-    version: bool = t.Option(None, "--version", callback=version_callback, is_eager=True),  # type: ignore
+    version: bool = t.Option(None, "--version", callback=version_callback, is_eager=True),
 ) -> None:
     """Start the MCP protocol server."""
     try:
@@ -123,7 +123,7 @@ def start(
         with RuntimeConfig.open_sync(config_path) as runtime:
             server = LLMLingServer(
                 runtime=runtime,
-                transport=transport,  # type: ignore
+                transport=transport,
                 name=server_name,
                 instructions=instructions,
                 transport_options=transport_options,
@@ -186,7 +186,7 @@ def run() -> None:
     """Entry point for the CLI."""
     if os.name == "nt":  # Windows
         policy = asyncio.WindowsSelectorEventLoopPolicy()  # type: ignore[attr-defined]
-        asyncio.set_event_loop_policy(policy)
+        asyncio.set_event_loop_policy(policy)  # ty: ignore[deprecated]
     cli()
 
 

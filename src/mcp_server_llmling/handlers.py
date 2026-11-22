@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from typing import TYPE_CHECKING, Any
 
 from llmling.core import exceptions
@@ -132,7 +133,7 @@ def register_handlers(llm_server: LLMLingServer) -> None:
         return templates
 
     @llm_server.server.read_resource()
-    async def handle_read_resource(uri: AnyUrl) -> str | bytes:
+    async def handle_read_resource(uri: AnyUrl) -> types.ReadResourceResult:
         """Handle direct resource content requests."""
         try:
             internal_uri = conversions.from_mcp_uri(str(uri))
@@ -143,9 +144,16 @@ def register_handlers(llm_server: LLMLingServer) -> None:
             else:
                 resource = await llm_server.runtime.load_resource_by_uri(internal_uri)
 
-            if resource.metadata.mime_type.startswith("text/"):
-                return resource.content
-            return resource.content_items[0].content.encode()
+            mime_type = resource.metadata.mime_type
+            contents: types.TextResourceContents | types.BlobResourceContents
+            if mime_type.startswith("text/"):
+                contents = types.TextResourceContents(
+                    uri=uri, text=resource.content, mimeType=mime_type
+                )
+            else:
+                blob = base64.b64encode(resource.content_items[0].content.encode()).decode()
+                contents = types.BlobResourceContents(uri=uri, blob=blob, mimeType=mime_type)
+            return types.ReadResourceResult(contents=[contents])
 
         except Exception as exc:
             error_msg = f"Failed to read resource: {exc}"

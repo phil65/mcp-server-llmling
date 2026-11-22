@@ -73,7 +73,8 @@ class ResourceList:
                 ) as table_elem:
                     with (
                         table_elem.add_slot("top-right"),
-                        ui.input(placeholder="Search")
+                        ui
+                        .input(placeholder="Search")
                         .props("type=search")
                         .bind_value(table_elem, "filter"),
                     ):
@@ -89,17 +90,19 @@ class ResourceList:
 
     def _create_action_buttons(self, cell: Slot) -> None:
         """Create action buttons for a table row."""
-        name: str = cell.record["name"]  # type: ignore[attr-defined]
+        name: str = cell.record["name"]  # ty: ignore[missing-attribute]
 
         with (
-            ui.button(icon="visibility", color="blue")
+            ui
+            .button(icon="visibility", color="blue")
             .props("flat dense")
             .on_click(lambda: self._preview_resource(name))
         ):
             ui.tooltip("Preview resource")
 
         with (
-            ui.button(icon="delete", color="red")
+            ui
+            .button(icon="delete", color="red")
             .props("flat dense")
             .on_click(lambda: self._delete_resource(name))
         ):

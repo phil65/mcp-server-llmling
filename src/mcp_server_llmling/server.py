@@ -20,7 +20,7 @@ from mcp_server_llmling.server_federation import FederatedServers, ServerFederat
 
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable, Coroutine
+    from collections.abc import AsyncGenerator, Callable, Coroutine
     from contextlib import AbstractAsyncContextManager
 
     from fastmcp.server.auth import AuthProvider
@@ -72,8 +72,8 @@ class LLMLingServer:
             name: Server name for MCP protocol
             instructions: Instructions for client
             tags: Tags for server
-            dependencies: Dependencies for server
-            tool_serializer: Tool serializer function
+            dependencies: Unused (no longer supported by FastMCP 3)
+            tool_serializer: Unused (no longer supported by FastMCP 3)
             lifespan: Lifespan function for server
             auth_server_provider: Auth server provider
             transport_options: Additional options for transport
@@ -99,10 +99,9 @@ class LLMLingServer:
             instructions=instructions,
             lifespan=lifespan,
             auth=auth_server_provider,
-            include_tags=tags,
-            dependencies=dependencies,
-            tool_serializer=tool_serializer,
         )
+        if tags:
+            self.fastmcp.enable(tags=tags, only=True)
         self.server = self.fastmcp._mcp_server
 
         self.injection_server = None
@@ -123,7 +122,7 @@ class LLMLingServer:
         transport: TransportType = "stdio",
         name: str = constants.SERVER_NAME,
         transport_options: dict[str, Any] | None = None,
-    ) -> AsyncIterator[LLMLingServer]:
+    ) -> AsyncGenerator[LLMLingServer]:
         """Create and run server from config file with proper context management."""
         manager = ConfigManager.load(config_path)
         async with RuntimeConfig.from_config(manager.config) as runtime:

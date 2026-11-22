@@ -9,7 +9,6 @@
 [![Implementation](https://img.shields.io/pypi/implementation/mcp-server-llmling.svg)](https://pypi.org/project/mcp-server-llmling/)
 [![Releases](https://img.shields.io/github/downloads/phil65/mcp-server-llmling/total.svg)](https://github.com/phil65/mcp-server-llmling/releases)
 [![Github Contributors](https://img.shields.io/github/contributors/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/graphs/contributors)
-[![Github Discussions](https://img.shields.io/github/discussions/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/discussions)
 [![Github Forks](https://img.shields.io/github/forks/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/forks)
 [![Github Issues](https://img.shields.io/github/issues/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/issues)
 [![Github Issues](https://img.shields.io/github/issues-pr/phil65/mcp-server-llmling)](https://github.com/phil65/mcp-server-llmling/pulls)
@@ -147,10 +146,12 @@ uvx mcp-server-llmling@latest
 from llmling import RuntimeConfig
 from mcp_server_llmling import LLMLingServer
 
+
 async def main() -> None:
     async with RuntimeConfig.open(config) as runtime:
         server = LLMLingServer(runtime, enable_injection=True)
         await server.start()
+
 
 asyncio.run(main())
 ```
@@ -161,6 +162,7 @@ asyncio.run(main())
 from llmling import RuntimeConfig
 from mcp_server_llmling import LLMLingServer
 
+
 async def main() -> None:
     async with RuntimeConfig.open(config) as runtime:
         server = LLMLingServer(
@@ -169,10 +171,11 @@ async def main() -> None:
             transport_options={
                 "host": "localhost",
                 "port": 3001,
-                "cors_origins": ["http://localhost:3000"]
-            }
+                "cors_origins": ["http://localhost:3000"],
+            },
         )
         await server.start()
+
 
 asyncio.run(main())
 ```

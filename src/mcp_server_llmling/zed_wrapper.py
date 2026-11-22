@@ -83,7 +83,11 @@ def prepare_runtime_for_zed(runtime: RuntimeConfig) -> None:
 
         try:
             # Get and wrap the original function
-            original_func = importing.import_callable(prompt.import_path)
+            original_func = (
+                importing.import_callable(prompt.import_path)
+                if isinstance(prompt.import_path, str)
+                else prompt.import_path
+            )
             wrapped_func = create_zed_wrapper(original_func)
 
             # Create new import path
