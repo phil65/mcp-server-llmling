@@ -1,6 +1,7 @@
 """mcp-server-llmling: main package.
 
-MCP (Model context protocol) server with LLMling backend.
+MCP (Model Context Protocol) server for resources, prompts and tools
+defined in LLMling YAML configs.
 """
 
 from __future__ import annotations

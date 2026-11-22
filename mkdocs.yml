@@ -1,5 +1,5 @@
 site_name: "mcp-server-llmling"
-site_description: "MCP (Model context protocol) server with LLMling backend"
+site_description: "MCP (Model Context Protocol) server for resources, prompts and tools defined in LLMling YAML configs"
 repo_url: "https://github.com/phil65/mcp-server-llmling/"
 site_url: https://phil65.github.io/mcp-server-llmling/
 site_author: "Philipp Temminghoff"
