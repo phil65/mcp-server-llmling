@@ -26,18 +26,24 @@
 
 
 
-# LLMling Server Manual
-
+# mcp-server-llmling
 
 ## Overview
 
-mcp-server-llmling is a server for the Machine Chat Protocol (MCP) that provides a YAML-based configuration system for LLM applications.
+mcp-server-llmling is a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server
+that serves resources, prompts and tools declared in an [LLMling](https://github.com/phil65/LLMling)
+YAML configuration file. No code is needed to set up a custom MCP server.
 
-[LLMLing](https://phil65.github.io/LLMling/), the backend,  provides a YAML-based configuration system for LLM applications.
-It allows to set up custom MCP servers serving content defined in YAML files.
+## Installation
+
+```bash
+pip install mcp-server-llmling
+# or run it directly
+uvx mcp-server-llmling start path/to/your/config.yml
+```
 
 - **Static Declaration**: Define your LLM's environment in YAML - no code required
-- **MCP Protocol**: Built on the Machine Chat Protocol (MCP) for standardized LLM interaction
+- **MCP Protocol**: Built on the Model Context Protocol (MCP) for standardized LLM interaction
 - **Component Types**:
   - **Resources**: Content providers (files, text, CLI output, etc.)
   - **Prompts**: Message templates with arguments
@@ -58,7 +64,7 @@ The YAML configuration creates a complete environment that provides the LLM with
   - CLI command output (`CLIResource`)
   - Python source code (`SourceResource`)
   - Python callable results (`CallableResource`)
-  - Images (`ImageResource`)
+  - Git repository content (`RepositoryResource`)
 - Support for resource watching/hot-reload
 - Resource processing pipelines
 - URI-based resource access
@@ -79,8 +85,12 @@ The YAML configuration creates a complete environment that provides the LLM with
 
 ### 4. Multiple Transport Options
 - Stdio-based communication (default)
-- Server-Sent Events (SSE) / Streamable HTTP for web clients
-- Support for custom transport implementations
+- Streamable HTTP and Server-Sent Events (SSE) for web clients
+
+### 5. Config injection and Zed mode
+- Optional HTTP/WebSocket API to add or update components of a running server
+  (`--enable-injection`, `mcp-server-llmling inject config.yml`)
+- `--zed-mode` wraps multi-argument prompts for Zed editor compatibility
 
 
 
@@ -136,19 +146,28 @@ Configure LLMLing in your `claude_desktop_config.json`:
 Start the server directly from command line:
 
 ```bash
-# Latest version
-uvx mcp-server-llmling@latest
+# Latest version, stdio transport
+uvx mcp-server-llmling@latest start path/to/your/config.yml
+
+# Streamable HTTP on a custom port
+uvx mcp-server-llmling start path/to/your/config.yml --transport streamable-http --port 3001
+
+# Other commands
+uvx mcp-server-llmling info
+uvx mcp-server-llmling --help
 ```
 
 ### 1. Programmatic usage
 
 ```python
+import asyncio
+
 from llmling import RuntimeConfig
 from mcp_server_llmling import LLMLingServer
 
 
 async def main() -> None:
-    async with RuntimeConfig.open(config) as runtime:
+    async with RuntimeConfig.open("config.yml") as runtime:
         server = LLMLingServer(runtime, enable_injection=True)
         await server.start()
 
@@ -159,20 +178,19 @@ asyncio.run(main())
 ### 2. Using Custom Transport
 
 ```python
+import asyncio
+
 from llmling import RuntimeConfig
 from mcp_server_llmling import LLMLingServer
 
 
 async def main() -> None:
-    async with RuntimeConfig.open(config) as runtime:
+    async with RuntimeConfig.open("config.yml") as runtime:
         server = LLMLingServer(
-            config,
-            transport="sse",
-            transport_options={
-                "host": "localhost",
-                "port": 3001,
-                "cors_origins": ["http://localhost:3000"],
-            },
+            runtime,
+            transport="streamable-http",
+            # passed on to FastMCP.run_async()
+            transport_options={"host": "localhost", "port": 3001},
         )
         await server.start()
 
@@ -200,6 +218,7 @@ resources:
       ================
       ...
 ```
+
 ### 4. Tool Configuration
 
 ```yaml
@@ -213,9 +232,6 @@ toolsets:
     type: openapi
     spec: "https://api.example.com/openapi.json"
 ```
-
-> [!TIP]
-> For OpenAPI schemas, you can install [Redocly CLI](https://github.com/Redocly/redocly-cli) to bundle and resolve OpenAPI specifications before using them with LLMLing. This helps ensure your schema references are properly resolved and the specification is correctly formatted. If redocly is installed, it will be used automatically.
 
 
 ## Server Configuration
