@@ -30,11 +30,13 @@ dependencies = [
   "anyenv>=0.5.0",
   "fastapi[standard]>=0.115.6",
   "fastmcp>=3.0.0,<4",
+  "httpx>=0.27.0",
   "llmling>=1.0.0",
   "logfire[fastapi]>=2.6.2",
   "mcp>=1.1.0,<2",
   "pydantic",
   "schemez>=1.0.0",
+  "typer>=0.12.0",
   "universal-pathlib>=0.2.5",
   "upathtools[httpx]",
   "uvicorn",
@@ -91,6 +93,11 @@ exclude_lines = [
   "except ImportError",
   'if __name__ == "__main__":',
 ]
+
+[tool.deptry.per_rule_ignores]
+# universal-pathlib: type-only import; websockets: uvicorn WebSocket backend for /ws;
+# schemez: kept on purpose.
+DEP002 = ["schemez", "universal-pathlib", "websockets"]
 
 [tool.mknodes]
 allowed-commit-types = [
