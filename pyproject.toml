@@ -43,7 +43,7 @@ dependencies = [
   "anyenv>=0.5.0",
   "fastapi[standard]>=0.115.6",
   "fastmcp>=3.0.0,<4",
-  "httpx>=0.27.0",
+  "httpx2>=2.16",
   "llmling>=1.0.0",
   "logfire[fastapi]>=2.6.2",
   "mcp>=1.1.0,<2",
@@ -51,7 +51,7 @@ dependencies = [
   "schemez>=1.0.0",
   "typer>=0.12.0",
   "universal-pathlib>=0.2.5",
-  "upathtools[httpx]",
+  "upathtools[httpx2]>=1.25.0",
   "uvicorn",
   # Only add below (Copier)
   "websockets>=14.1",

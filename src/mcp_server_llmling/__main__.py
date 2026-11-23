@@ -168,13 +168,13 @@ def inject(
     verbose: bool = t.Option(False, *VERBOSE_CMDS, help=VERBOSE_HELP, callback=verbose_callback),
 ):
     """Inject configuration into a running server."""
-    import httpx
+    import httpx2
 
     try:
         with config_path.open("rb") as f:
             data = f.read()
         url = f"http://{host}:{port}/inject-config"
-        response = httpx.post(url, content=data)
+        response = httpx2.post(url, content=data)
         response.raise_for_status()
         t.echo("Configuration injected successfully")
     except Exception as e:  # noqa: BLE001

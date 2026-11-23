@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-import httpx
+import httpx2
 import yaml
 
 
@@ -20,7 +20,7 @@ tools:
 
 
 async def main() -> None:
-    async with httpx.AsyncClient() as client:
+    async with httpx2.AsyncClient() as client:
         # First check what we have
         print("\nGetting initial components...")
         response = await client.get("http://localhost:8765/components")

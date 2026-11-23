@@ -6,7 +6,7 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from fastapi.testclient import TestClient
-import httpx
+import httpx2
 from llmling import Config, RuntimeConfig
 from llmling.config.models import TextResource
 import pytest
@@ -62,16 +62,19 @@ async def server(runtime: RuntimeConfig) -> AsyncGenerator[LLMLingServer]:
 
 
 @pytest.fixture
-async def client(server: LLMLingServer) -> AsyncGenerator[httpx.AsyncClient]:
+async def client(server: LLMLingServer) -> AsyncGenerator[httpx2.AsyncClient]:
     """Create HTTP client connected to injection server."""
     assert server.injection_server
     base_url = f"http://localhost:{server.injection_server.port}"
 
-    async with httpx.AsyncClient(base_url=base_url) as client:
+    # The injection server disables keep-alive (timeout_keep_alive=0), so don't
+    # reuse pooled connections the server may already have closed.
+    limits = httpx2.Limits(max_keepalive_connections=0)
+    async with httpx2.AsyncClient(base_url=base_url, limits=limits) as client:
         yield client
 
 
-async def test_list_components(client: httpx.AsyncClient) -> None:
+async def test_list_components(client: httpx2.AsyncClient) -> None:
     """Test listing all components."""
     response = await client.get("/components")
     assert response.status_code == STATUS_OK
@@ -83,7 +86,7 @@ async def test_list_components(client: httpx.AsyncClient) -> None:
     assert "test_tool" in data["tools"]
 
 
-async def test_add_resource(client: httpx.AsyncClient) -> None:
+async def test_add_resource(client: httpx2.AsyncClient) -> None:
     """Test adding a resource."""
     payload = {"type": "text", "content": "New content"}
     response = await client.post("/resources/new_resource", json=payload)
@@ -100,7 +103,7 @@ async def test_add_resource(client: httpx.AsyncClient) -> None:
     assert "new_resource" in resources
 
 
-# # async def test_add_invalid_resource(client: httpx.AsyncClient) -> None:
+# # async def test_add_invalid_resource(client: httpx2.AsyncClient) -> None:
 #     """Test adding an invalid resource."""
 #     response = await client.post(
 #         "/resources/bad_resource",
@@ -114,7 +117,7 @@ async def test_add_resource(client: httpx.AsyncClient) -> None:
 #     assert response.status_code == STATUS_ERROR
 
 
-async def test_bulk_update(client: httpx.AsyncClient) -> None:
+async def test_bulk_update(client: httpx2.AsyncClient) -> None:
     """Test bulk component updates."""
     from llmling.config.models import ToolConfig
 
@@ -167,10 +170,10 @@ async def test_websocket_communication(server: LLMLingServer) -> None:
         assert response["request_id"] == "test-1"
 
 
-async def test_concurrent_updates(client: httpx.AsyncClient) -> None:
+async def test_concurrent_updates(client: httpx2.AsyncClient) -> None:
     """Test concurrent updates."""
 
-    async def add_resource(name: str) -> httpx.Response:
+    async def add_resource(name: str) -> httpx2.Response:
         data = {"type": "text", "content": f"Content {name}"}
         return await client.post(f"/resources/{name}", json=data)
 

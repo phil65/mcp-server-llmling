@@ -154,9 +154,9 @@ class ConfigInjectionServer:
 if __name__ == "__main__":
 
     async def main() -> None:
-        import httpx
+        import httpx2
 
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             # Add a single resource
             response = await client.post(
                 "http://localhost:8765/resources/my_resource",

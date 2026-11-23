@@ -17,12 +17,12 @@ def find_free_port() -> int:
 
 async def wait_for_injection_server(port: int, timeout: float = 2.0) -> None:
     """Wait for injection server to be ready."""
-    import httpx
+    import httpx2
 
     start = time.monotonic()
     while True:
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx2.AsyncClient() as client:
                 response = await client.get(f"http://localhost:{port}/docs", timeout=0.5)
                 if response.status_code == MESSAGE_OK:
                     return
