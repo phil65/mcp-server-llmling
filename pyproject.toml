@@ -2,7 +2,7 @@
 
 [project]
 name = "mcp-server-llmling"
-version = "1.0.1"
+version = "1.1.0"
 description = "MCP (Model Context Protocol) server for resources, prompts and tools defined in LLMling YAML configs"
 readme = "README.md"
 requires-python = ">=3.13"
