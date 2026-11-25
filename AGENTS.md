@@ -77,6 +77,12 @@ Python 3.13/3.14 (3.14 is `continue-on-error`) across Linux/macOS/Windows.
   Protocol tests start a real server subprocess via `MCPInProcSession`.
 - Conventional commits (commitizen hook).
 
+## Specs
+
+| Spec | URL | Targets | Code | Update check |
+|---|---|---|---|---|
+| Model Context Protocol | https://modelcontextprotocol.io/specification/2025-11-25 | 2025-11-25 (`mcp.types.LATEST_PROTOCOL_VERSION` of the locked `mcp` 1.30.0; follows the SDK) | `src/mcp_server_llmling/handlers.py`, `http_client.py`, `mcp_inproc_session.py` | https://modelcontextprotocol.io/specification/latest (redirects to the newest revision), https://github.com/modelcontextprotocol/python-sdk/releases |
+
 ## Pitfalls
 
 - `mcp` is capped `<2` and `fastmcp` `<4`: `handlers.py`, `log.py`, `server.py` and

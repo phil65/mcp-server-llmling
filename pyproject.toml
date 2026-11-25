@@ -63,6 +63,7 @@ Documentation = "https://phil65.github.io/mcp-server-llmling/"
 Homepage = "https://phil65.github.io/mcp-server-llmling/"
 Issues = "https://github.com/phil65/mcp-server-llmling/issues"
 Source = "https://github.com/phil65/mcp-server-llmling"
+"Spec: Model Context Protocol" = "https://modelcontextprotocol.io/specification/2025-11-25"
 
 [project.scripts]
 mcp-server-llmling = "mcp_server_llmling.__main__:cli"
