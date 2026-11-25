@@ -6,7 +6,7 @@ import platform
 
 import pytest
 
-from mcp_server_llmling.mcp_inproc_session import MCPInProcSession
+from mcp_server_llmling.mcp_inproc_session import MCPInProcSession, initialize_params
 
 
 @pytest.mark.skipif(
@@ -20,14 +20,7 @@ async def test_resource_to_tool_workflow() -> None:
         await client.start()
         init_response = await client.send_request(
             "initialize",
-            {
-                "protocolVersion": "0.1",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0"},
-                "processId": None,
-                "rootUri": None,
-                "workspaceFolders": None,
-            },
+            initialize_params(),
         )
         assert "serverInfo" in init_response
         await client.send_notification("notifications/initialized", {})

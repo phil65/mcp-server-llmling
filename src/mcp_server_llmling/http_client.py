@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Self
 
 from mcp.client.session import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
+from mcp.types import LATEST_PROTOCOL_VERSION, Implementation
 from pydantic import AnyUrl
 
 from mcp_server_llmling.log import get_logger
@@ -26,7 +27,8 @@ class HTTPClientConfig:
     """Configuration for HTTP-based MCP client."""
 
     server_url: str
-    protocol_version: str = "0.1"
+    protocol_version: str = LATEST_PROTOCOL_VERSION
+    """MCP revision we expect; the SDK's `ClientSession` offers its `LATEST_PROTOCOL_VERSION`."""
     client_name: str = "mcp-client"
     client_version: str = "1.0"
     timeout: float = 30.0
@@ -70,11 +72,15 @@ class HTTPMCPClient:
             streams_and_callback = await self._context_manager.__aenter__()
             read_stream, write_stream, _get_session_id = streams_and_callback
 
-            self._session = ClientSession(read_stream, write_stream)
+            info = Implementation(name=self.config.client_name, version=self.config.client_version)
+            self._session = ClientSession(read_stream, write_stream, client_info=info)
             await self._session.__aenter__()
             result = await self._session.initialize()
             msg = "Connected to MCP server at %s (protocol version %s)"
             logger.info(msg, self.config.server_url, result.protocolVersion)
+            if result.protocolVersion != self.config.protocol_version:
+                msg = "Server negotiated MCP protocol version %s (expected %s)"
+                logger.warning(msg, result.protocolVersion, self.config.protocol_version)
         except Exception as exc:
             # Clean up on failure
             try:

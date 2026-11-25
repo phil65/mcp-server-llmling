@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from mcp.types import LATEST_PROTOCOL_VERSION
 import pytest
 
 from mcp_server_llmling import constants
@@ -82,6 +83,7 @@ async def test_mcp_handshake(configured_client: MCPInProcSession) -> None:
     """Test MCP protocol handshake."""
     # Do another handshake to explicitly test it
     init_response = await configured_client.do_handshake()
+    assert init_response["protocolVersion"] == LATEST_PROTOCOL_VERSION
 
     # Verify server info
     assert "serverInfo" in init_response

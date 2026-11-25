@@ -10,12 +10,24 @@ import subprocess
 from typing import Any
 
 import anyenv
+from mcp.types import LATEST_PROTOCOL_VERSION
 
 from mcp_server_llmling import constants
 from mcp_server_llmling.log import get_logger
 
 
 logger = get_logger(__name__)
+
+
+def initialize_params(
+    client_name: str = "mcp-inproc-session", client_version: str = "1.0"
+) -> dict[str, Any]:
+    """Build MCP `initialize` request params for the SDK's latest protocol revision."""
+    return {
+        "protocolVersion": LATEST_PROTOCOL_VERSION,
+        "capabilities": {},
+        "clientInfo": {"name": client_name, "version": client_version},
+    }
 
 
 class MCPInProcSession:
@@ -144,17 +156,10 @@ class MCPInProcSession:
         self.process.stdin.flush()
 
     async def do_handshake(self) -> dict[str, Any]:
-        """Perform initial handshake with server."""
+        """Perform the MCP initialize handshake with the server."""
         init_response = await self.send_request(
             "initialize",
-            {
-                "protocolVersion": "0.1",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0"},
-                "processId": None,
-                "rootUri": None,
-                "workspaceFolders": None,
-            },
+            initialize_params(),
         )
         await self.send_notification("notifications/initialized", {})
         return init_response
@@ -191,10 +196,10 @@ class MCPInProcSession:
             await self._stderr_task
         if self.process:
             try:
-                # Just send shutdown notification instead of request
-                await self.send_notification("shutdown", {})
-                await self.send_notification("exit", {})
-                await asyncio.sleep(0.1)  # Give server time to process
+                # MCP stdio shutdown: close the server's stdin, then terminate if needed.
+                if self.process.stdin:
+                    self.process.stdin.close()
+                await asyncio.sleep(0.1)  # Give server time to exit
             except Exception as e:  # noqa: BLE001
                 logger.warning("Error during shutdown: %s", e)
             finally:
