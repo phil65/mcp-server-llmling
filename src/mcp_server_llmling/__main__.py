@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from pathlib import Path
 import sys
 from typing import Any, Literal
@@ -131,7 +130,7 @@ def start(
                 injection_port=injection_port,
                 zed_mode=zed_mode,
             )
-            asyncio.run(server.start(raise_exceptions=True))
+            asyncio.run(server.start(raise_exceptions=True), loop_factory=loop_factory())
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
     except Exception:
@@ -182,11 +181,13 @@ def inject(
         sys.exit(1)
 
 
+def loop_factory() -> type[asyncio.AbstractEventLoop] | None:
+    """Event loop class for `asyncio.run` (selector loop on Windows, default elsewhere)."""
+    return asyncio.SelectorEventLoop if sys.platform == "win32" else None
+
+
 def run() -> None:
     """Entry point for the CLI."""
-    if os.name == "nt":  # Windows
-        policy = asyncio.WindowsSelectorEventLoopPolicy()  # type: ignore[attr-defined]
-        asyncio.set_event_loop_policy(policy)  # ty: ignore[deprecated]
     cli()
 
 
