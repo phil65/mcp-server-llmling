@@ -70,7 +70,7 @@ Python 3.13/3.14 (3.14 is `continue-on-error`) across Linux/macOS/Windows.
 
 ## Conventions
 
-- Python >= 3.13, `from __future__ import annotations`, ruff line length 100, Google docstrings.
+- Python >= 3.14, no `from __future__ import annotations` (PEP 649; banned via ruff TID251), ruff line length 100, Google docstrings.
 - Type checker is ty (pinned with ruff in the `lint` group; don't bump per repo). Use targeted
   `# ty: ignore[rule]`, not blanket ignores.
 - Tests: `tests/test_*.py`, pytest-asyncio in auto mode; markers `slow`, `unit`, `integration`.
