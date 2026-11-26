@@ -1,7 +1,5 @@
 """Conversions between internal and MCP types."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 import urllib.parse
 

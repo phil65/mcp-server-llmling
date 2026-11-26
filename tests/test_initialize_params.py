@@ -1,7 +1,5 @@
 """The MCP initialize request we send must match the MCP spec."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from mcp import types

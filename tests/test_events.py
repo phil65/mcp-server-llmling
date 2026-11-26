@@ -1,7 +1,5 @@
 """Tests for server event handling."""
 
-from __future__ import annotations
-
 import asyncio
 from unittest.mock import Mock
 

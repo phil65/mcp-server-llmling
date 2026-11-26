@@ -1,7 +1,5 @@
 """Dashboard page showing system overview."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from nicegui import ui

@@ -1,7 +1,5 @@
 """Models for component configuration and API communication."""
 
-from __future__ import annotations
-
 from collections.abc import Sequence  # noqa: F401
 from typing import Any, Literal
 

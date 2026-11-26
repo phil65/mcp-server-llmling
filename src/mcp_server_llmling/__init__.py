@@ -4,8 +4,6 @@ MCP (Model Context Protocol) server for resources, prompts and tools
 defined in LLMling YAML configs.
 """
 
-from __future__ import annotations
-
 from importlib.metadata import version
 
 __version__ = version("mcp-server-llmling")

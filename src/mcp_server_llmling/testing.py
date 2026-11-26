@@ -1,7 +1,5 @@
 """Importable functiosn for testing."""
 
-from __future__ import annotations
-
 
 def test_func(main_arg: str, opt1: str = "default", opt2: bool = False) -> str:  # noqa: PT028
     """Function purely for testing."""

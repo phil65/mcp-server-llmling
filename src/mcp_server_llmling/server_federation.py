@@ -1,7 +1,5 @@
 """Models and handlers for MCP server federation."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Annotated, Any, Literal
 

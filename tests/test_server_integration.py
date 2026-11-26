@@ -1,7 +1,5 @@
 """Test server integration functionality using modern MCP SDK."""
 
-from __future__ import annotations
-
 import platform
 
 import pytest

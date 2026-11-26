@@ -1,7 +1,5 @@
 """MCP protocol server implementation."""
 
-from __future__ import annotations
-
 import asyncio
 from collections import defaultdict
 import contextlib
@@ -10,7 +8,10 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 from fastmcp import FastMCP
 from llmling.config.manager import ConfigManager
+from llmling.config.models import BaseResource  # noqa: TC002
 from llmling.config.runtime import RuntimeConfig
+from llmling.prompts.models import BasePrompt  # noqa: TC002
+from llmling.tools.base import LLMCallableTool  # noqa: TC002
 from pydantic import AnyUrl
 
 from mcp_server_llmling import constants
@@ -24,9 +25,6 @@ if TYPE_CHECKING:
     from contextlib import AbstractAsyncContextManager
 
     from fastmcp.server.auth import AuthProvider
-    from llmling.config.models import BaseResource
-    from llmling.prompts.models import BasePrompt
-    from llmling.tools.base import LLMCallableTool
     import mcp
     from mcp import Implementation
     from mcp.server.lowlevel.server import LifespanResultT

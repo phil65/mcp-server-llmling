@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pydantic import AnyUrl
 import pytest
 
